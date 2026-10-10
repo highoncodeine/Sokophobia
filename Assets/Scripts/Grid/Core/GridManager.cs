@@ -31,12 +31,24 @@ namespace Sokophobia.Grid
         public float CellSize => cellSize;
         public Vector3 Origin => origin;
 
-        private void Awake()
+        private bool initialized = false;
+
+        // ---------- Lifecycle ----------
+        private void EnsureInitialized()
         {
+            if (initialized) return;
+
             cells = new CellType[width, height];
             for (int x = 0; x < width; x++)
                 for (int z = 0; z < height; z++)
                     cells[x, z] = CellType.Floor;
+
+            initialized = true;
+        }
+
+        private void Awake()
+        {
+            EnsureInitialized();
         }
 
         // ---------- Coordinate Conversion ----------
@@ -53,16 +65,26 @@ namespace Sokophobia.Grid
 
         // ---------- Cell Queries ----------
         public bool IsInBounds(GridCoord c)
-            => c.x >= 0 && c.x < width && c.z >= 0 && c.z < height;
+        {
+            EnsureInitialized();
+            return c.x >= 0 && c.x < width && c.z >= 0 && c.z < height;
+        }
 
         public bool IsValidCell(GridCoord c)
-            => IsInBounds(c) && cells[c.x, c.z] == CellType.Floor;
+        {
+            EnsureInitialized();
+            return IsInBounds(c) && cells[c.x, c.z] == CellType.Floor;
+        }
 
         public CellType GetCellType(GridCoord c)
-            => IsInBounds(c) ? cells[c.x, c.z] : CellType.Void;
+        {
+            EnsureInitialized();
+            return IsInBounds(c) ? cells[c.x, c.z] : CellType.Void;
+        }
 
         public void SetCellType(GridCoord c, CellType type)
         {
+            EnsureInitialized();
             if (!IsInBounds(c)) return;
             cells[c.x, c.z] = type;
         }

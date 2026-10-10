@@ -25,6 +25,9 @@ namespace Sokophobia.Grid
         public static GridCoord operator -(GridCoord a, GridCoord b)
             => new GridCoord(a.x - b.x, a.z - b.z);
 
+        public static GridCoord operator -(GridCoord a)
+            => new GridCoord(-a.x, -a.z);
+
         public static bool operator ==(GridCoord a, GridCoord b) => a.Equals(b);
         public static bool operator !=(GridCoord a, GridCoord b) => !a.Equals(b);
 
