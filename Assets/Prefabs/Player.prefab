@@ -180,6 +180,8 @@ GameObject:
   - component: {fileID: 5366346321690783772}
   - component: {fileID: 7301421215681985256}
   - component: {fileID: 4503053807006061271}
+  - component: {fileID: 6648700964063857540}
+  - component: {fileID: 1367060409368197732}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -245,3 +247,31 @@ MonoBehaviour:
   moveDuration: 0.18
   turnDuration: 0.12
   logSteps: 0
+--- !u!114 &6648700964063857540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6224745528014464613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc0c1f76cd837b043b5e1427692a517f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.BoxPushController
+  gridManager: {fileID: 0}
+--- !u!114 &1367060409368197732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6224745528014464613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6d24bd0c1ceaca4497aeb4fd018f4d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.PullAbility
+  gridManager: {fileID: 0}
+  pullNoiseRadius: 15
+  pullNoiseIntensity: 1.2

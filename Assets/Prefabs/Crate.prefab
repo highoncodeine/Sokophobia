@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1559587126981998322}
   - component: {fileID: 9057434265686804022}
   - component: {fileID: 6737396924655507626}
+  - component: {fileID: 5850101951703492567}
   m_Layer: 0
   m_Name: Crate
   m_TagString: Untagged
@@ -112,3 +113,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5850101951703492567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5192174210046758329}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1a8253a664a4c240884dfd94e130069, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.Box
+  moveDuration: 0.15
+  gridYOffset: 1
+  pushNoiseRadius: 12
+  pushNoiseIntensity: 1

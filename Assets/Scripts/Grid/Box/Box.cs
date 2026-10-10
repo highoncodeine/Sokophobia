@@ -3,14 +3,11 @@ using UnityEngine;
 
 namespace Sokophobia.Grid
 {
-    /// <summary>
-    /// A pushable/pullable Sokoban box. Implements IGridOccupant.
-    /// Logical position updates instantly; visual position lerps.
-    /// </summary>
     public class Box : MonoBehaviour, IGridOccupant
     {
         [Header("Visual")]
         [SerializeField] private float moveDuration = 0.15f;
+        [SerializeField] private float gridYOffset = 0.5f;
 
         [Header("Audio (optional)")]
         [SerializeField] private float pushNoiseRadius = 12f;
@@ -23,28 +20,46 @@ namespace Sokophobia.Grid
         private GridManager gridManager;
         private Coroutine moveRoutine;
 
-        /// <summary>
-        /// Called by GridManager (or the pusher) right after TryPlace on this box.
-        /// </summary>
+        private void Start()
+        {
+            if (gridManager == null)
+                gridManager = FindFirstObjectByType<GridManager>();
+
+            if (gridManager == null)
+            {
+                Debug.LogError("[Box] No GridManager found.");
+                return;
+            }
+
+            Coord = gridManager.WorldToGrid(transform.position);
+
+            if (!gridManager.TryPlace(Coord, this))
+            {
+                Debug.LogError($"[Box] Could not register at {Coord}. " +
+                               $"Valid: {gridManager.IsValidCell(Coord)}, " +
+                               $"Occupied: {gridManager.IsOccupied(Coord)}");
+            }
+            else
+            {
+                transform.position = WorldPosOf(Coord);
+                GameEvents.RaiseBoxPlaced(this, Coord);
+            }
+        }
+
         public void Init(GridManager manager, GridCoord startCoord)
         {
             gridManager = manager;
             Coord = startCoord;
-            transform.position = gridManager.GridToWorld(startCoord);
+            transform.position = WorldPosOf(startCoord);
         }
 
-        /// <summary>
-        /// Called by the push/pull controller after the grid has already updated.
-        /// Updates logical Coord and lerps the visual.
-        /// </summary>
         public void MoveTo(GridCoord target)
         {
             Coord = target;
 
             if (moveRoutine != null) StopCoroutine(moveRoutine);
-            moveRoutine = StartCoroutine(LerpTo(gridManager.GridToWorld(target)));
+            moveRoutine = StartCoroutine(LerpTo(WorldPosOf(target)));
 
-            // Emit noise at the new cell
             var noise = new NoiseEvent(
                 transform.position,
                 pushNoiseRadius,
@@ -53,6 +68,9 @@ namespace Sokophobia.Grid
             );
             GameEvents.RaiseNoise(noise);
         }
+
+        private Vector3 WorldPosOf(GridCoord coord)
+            => gridManager.GridToWorld(coord) + new Vector3(0f, gridYOffset, 0f);
 
         private IEnumerator LerpTo(Vector3 targetPos)
         {
