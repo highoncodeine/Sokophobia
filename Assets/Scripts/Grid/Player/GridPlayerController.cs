@@ -82,6 +82,28 @@ namespace Sokophobia.Grid
                 GridCoord dir = moveInput > 0f ? forward : -forward;
                 TryStep(dir);
             }
+
+            // ---- Pull (hold Shift + move input, or dedicated key) ----
+            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            {
+                float pullInput = Input.GetAxisRaw("Vertical");
+                if (Mathf.Abs(pullInput) > 0.5f)
+                {
+                    var puller = GetComponent<PullAbility>();
+                    if (puller != null)
+                    {
+                        GridCoord forward = Directions[facingIndex];
+                        GridCoord boxCell = Coord + forward;
+                        GridCoord? dest = puller.TryPull(Coord, boxCell, forward);
+
+                        if (dest.HasValue)
+                        {
+                            StartCoroutine(StepRoutine(dest.Value));
+                        }
+                    }
+                    return;
+                }
+            }
         }
 
         // ---------- Movement ----------
@@ -98,16 +120,21 @@ namespace Sokophobia.Grid
             if (gridManager.IsOccupied(target))
             {
                 var occ = gridManager.GetOccupant(target);
-                // TODO: uncomment when BoxPushController lands on feature/box-interaction
-                // if (occ != null && occ.Type == OccupantType.Box)
-                // {
-                //     var pusher = GetComponent<BoxPushController>();
-                //     if (pusher != null && pusher.TryPush(target, dir))
-                //     {
-                //         StartCoroutine(StepRoutine(target));
-                //     }
-                //     return;
-                // }
+
+                // --- Push attempt ---
+                if (occ != null && occ.Type == OccupantType.Box)
+                {
+                    var pusher = GetComponent<BoxPushController>();
+                    if (pusher != null && pusher.TryPush(target, dir))
+                    {
+                        StartCoroutine(StepRoutine(target));
+                    }
+                    else if (logSteps)
+                    {
+                        Debug.Log($"[GridPlayerController] Push failed at {target}");
+                    }
+                    return;
+                }
 
                 if (logSteps) Debug.Log($"[GridPlayerController] Blocked (occupied by {occ?.Type}): {target}");
                 return;
