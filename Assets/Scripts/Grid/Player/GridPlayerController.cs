@@ -32,6 +32,11 @@ namespace Sokophobia.Grid
         private int facingIndex = 0; // 0 = +Z, 1 = +X, 2 = -Z, 3 = -X
         private bool isBusy = false;
 
+        /// <summary>Smoothed world-space velocity for enemy intercept prediction.</summary>
+        public Vector3 Velocity { get; private set; }
+
+        private Vector3 _prevPos;
+
         private BoxPushController pusher;
         private PullAbility puller;
 
@@ -68,6 +73,19 @@ namespace Sokophobia.Grid
 
             transform.position = gridManager.GridToWorld(Coord);
             ApplyFacingInstant();
+            _prevPos = transform.position;
+        }
+
+        private void LateUpdate()
+        {
+            float dt = Time.deltaTime;
+            if (dt > 0f)
+            {
+                Vector3 inst = (transform.position - _prevPos) / dt;
+                Velocity = Vector3.Lerp(Velocity, inst, 1f - Mathf.Exp(-10f * dt));
+                if (Velocity.sqrMagnitude < 0.0004f) Velocity = Vector3.zero;
+            }
+            _prevPos = transform.position;
         }
 
         private void Update()
