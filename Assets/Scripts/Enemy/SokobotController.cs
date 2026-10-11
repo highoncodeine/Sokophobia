@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Sokophobia.Grid;
@@ -40,15 +41,41 @@ namespace Sokophobia.Enemy
         [SerializeField] private float headHeight = 1.6f;
         [SerializeField] private float proximityRadius = 2f;
         [SerializeField] private LayerMask visionBlockers = ~0;
+        [Tooltip("How often senses refresh (s), not every frame.")]
+        [SerializeField] private float senseInterval = 0.1f;
+
+        [Header("Alert (suspicion 0..1)")]
+        [Tooltip("Suspicion gained per second while the player is visible.")]
+        [SerializeField] private float suspicionGain = 2f;
+        [SerializeField] private float suspicionDecay = 0.5f;
+        [SerializeField, Range(0f, 1f)] private float investigateThreshold = 0.35f;
+        [SerializeField, Range(0f, 1f)] private float chaseThreshold = 1f;
+
+        [Header("Search")]
+        [Tooltip("How many points to check around lastKnown when investigating.")]
+        [SerializeField] private int searchPointCount = 4;
+        [SerializeField] private float searchRadius = 3f;
+
+        [Header("Intercept")]
+        [Tooltip("How much to lead the player's motion when chasing (0 = current pos).")]
+        [SerializeField, Range(0f, 1f)] private float interceptLead = 0.7f;
 
         [Header("Catch")]
         [SerializeField] private float catchDistance = 1.2f;
+        [Tooltip("Wind-up before a tag lands: the player can break away.")]
+        [SerializeField] private float catchWindup = 0.45f;
+        [SerializeField] private float catchLungeMultiplier = 1.6f;
+
+        [Header("Stun resistance")]
+        [Tooltip("Repeated stuns within this window lose potency.")]
+        [SerializeField] private float stunDiminishWindow = 8f;
 
         [Header("Debug")]
         [SerializeField] private bool drawGizmos = true;
 
         private NavMeshAgent _agent;
         private Transform _player;
+        private GridPlayerController _playerCtrl;
         private PuzzleManager _puzzle;
 
         private StateId _state = StateId.Inactive;
@@ -56,11 +83,23 @@ namespace Sokophobia.Enemy
         private int _wpIndex;
         private Vector3 _spawnPos;
 
+        // Blackboard (game-ai: decision layer reads this, motion layer acts on it).
         private Vector3 _lastKnown;
         private bool _hasLastKnown;
+        private float _suspicion;
+        private bool _seen; // cached sense result, refreshed on senseInterval
+        private float _senseTimer;
+        private readonly List<Vector3> _searchPoints = new();
+        private int _searchIndex;
         private float _repathTimer;
         private float _loseSightTimer;
         private float _tagCooldownTimer;
+        private float _catchTimer; // wind-up progress
+        private Vector3 _prevPlayerPos;
+        private bool _havePrevPlayerPos;
+        private Vector3 _playerVel;
+        private int _stunCount;
+        private float _lastStunTime = -999f;
 
         // Noise dedup: keep loudest within window, not first.
         private bool _noisePending;
@@ -80,7 +119,13 @@ namespace Sokophobia.Enemy
         private void Start()
         {
             var playerObj = FindAnyObjectByType<GridPlayerController>();
-            if (playerObj != null) _player = playerObj.transform;
+            if (playerObj != null)
+            {
+                _player = playerObj.transform;
+                _playerCtrl = playerObj;
+                _prevPlayerPos = _player.position;
+                _havePrevPlayerPos = true;
+            }
             else Debug.LogError("[Sokobot] No GridPlayerController found.");
 
             _puzzle = FindAnyObjectByType<PuzzleManager>();
@@ -111,12 +156,15 @@ namespace Sokophobia.Enemy
         }
 
         // ---------- Per-frame driver ----------
+        // game-ai: senses refresh on a timer into the blackboard; states only read it.
         private void Update()
         {
             float dt = Time.deltaTime;
             _stateTime += dt;
             _tagCooldownTimer = Mathf.Max(0f, _tagCooldownTimer - dt);
 
+            TrackPlayerVelocity(dt);
+            TickSenses(dt);
             PumpNoiseDedup(dt);
 
             switch (_state)
@@ -126,6 +174,45 @@ namespace Sokophobia.Enemy
                 case StateId.Investigate: TickInvestigate(dt); break;
                 case StateId.Chase: TickChase(dt); break;
                 case StateId.Stunned: TickStunned(); break;
+            }
+        }
+
+        private void TrackPlayerVelocity(float dt)
+        {
+            if (_player == null || dt <= 0f) return;
+            if (!_havePrevPlayerPos)
+            {
+                _prevPlayerPos = _player.position;
+                _havePrevPlayerPos = true;
+                return;
+            }
+            Vector3 inst = (_player.position - _prevPlayerPos) / dt;
+            float k = 1f - Mathf.Exp(-8f * dt);
+            _playerVel = Vector3.Lerp(_playerVel, inst, k);
+            if (_playerCtrl != null)
+            {
+                Vector3 pv = _playerCtrl.Velocity;
+                if (pv.sqrMagnitude > 0.001f) _playerVel = pv;
+            }
+            _prevPlayerPos = _player.position;
+        }
+
+        private void TickSenses(float dt)
+        {
+            _senseTimer -= dt;
+            if (_senseTimer > 0f) return;
+            _senseTimer = Mathf.Max(0.02f, senseInterval);
+
+            _seen = SensePlayer();
+            if (_seen)
+            {
+                _suspicion = Mathf.Min(1f, _suspicion + suspicionGain * senseInterval);
+                _lastKnown = _player != null ? _player.position : _lastKnown;
+                _hasLastKnown = _player != null;
+            }
+            else
+            {
+                _suspicion = Mathf.Max(0f, _suspicion - suspicionDecay * senseInterval);
             }
         }
 
@@ -149,12 +236,14 @@ namespace Sokophobia.Enemy
                 case StateId.Investigate:
                     _agent.isStopped = false;
                     ApplySpeed(investigateSpeed);
-                    if (_hasLastKnown) SetDestinationSafe(_lastKnown);
+                    BuildSearchPattern(_hasLastKnown ? _lastKnown : transform.position);
+                    GoToNextSearchPoint();
                     break;
                 case StateId.Chase:
                     _agent.isStopped = false;
                     _loseSightTimer = 0f;
                     _repathTimer = 0f;
+                    _catchTimer = 0f;
                     ApplySpeed(chaseSpeed);
                     break;
                 case StateId.Stunned:
@@ -172,7 +261,9 @@ namespace Sokophobia.Enemy
 
         private void TickPatrol(float dt)
         {
-            if (SensePlayer()) { Enter(StateId.Chase); return; }
+            // Proximity always wins; vision needs a full suspicion meter.
+            if (_seen && (_suspicion >= chaseThreshold || IsPlayerClose())) { Enter(StateId.Chase); return; }
+            if (_suspicion >= investigateThreshold && _hasLastKnown) { Enter(StateId.Investigate); return; }
 
             if (HasArrived())
                 GoToNextWaypoint();
@@ -181,45 +272,64 @@ namespace Sokophobia.Enemy
 
         private void TickInvestigate(float dt)
         {
-            if (SensePlayer()) { Enter(StateId.Chase); return; }
+            if (_seen && (_suspicion >= chaseThreshold || IsPlayerClose())) { Enter(StateId.Chase); return; }
 
             if (_stateTime >= investigateTimeout)
             {
                 _hasLastKnown = false;
+                _suspicion = 0f;
                 Enter(StateId.Patrol);
                 return;
             }
 
+            // game-ai: walk the search pattern instead of idling at one point.
             if (HasArrived())
-            {
-                // Reached the noise point, nothing visible: wait out the timeout.
-                _agent.ResetPath();
-            }
+                GoToNextSearchPoint();
         }
 
         private void TickChase(float dt)
         {
             if (_player == null) { Enter(StateId.Patrol); return; }
 
-            bool seen = SensePlayer();
+            bool seen = _seen;
             _loseSightTimer = seen ? 0f : _loseSightTimer + dt;
 
             _repathTimer -= dt;
             if (_repathTimer <= 0f)
             {
                 _repathTimer = repathInterval;
-                if (seen) _lastKnown = _player.position;
-                SetDestinationSafe(seen ? _player.position : _lastKnown);
+                SetDestinationSafe(PredictIntercept());
             }
 
+            // Telegraphed catch: must hold range + line-of-sight through the wind-up.
+            // Gives the player a dodge window instead of an instant tag through walls.
             float dist = Vector3.Distance(transform.position, _player.position);
-            if (dist <= catchDistance && _tagCooldownTimer <= 0f)
+            if (dist <= catchDistance + 0.3f && _tagCooldownTimer <= 0f && HasLineOfSight())
             {
-                _tagCooldownTimer = tagCooldown;
-                GameEvents.RaisePlayerDamaged();
-                _hasLastKnown = false;
-                Enter(StateId.Patrol);
-                return;
+                _catchTimer += dt;
+                float lunge = 1f + (catchLungeMultiplier - 1f) * Mathf.Clamp01(_catchTimer / Mathf.Max(0.05f, catchWindup));
+                _agent.speed = baseSpeedFor(StateId.Chase) * plateMultiplier() * lunge;
+                FacePlayer();
+
+                if (_catchTimer >= catchWindup)
+                {
+                    float d2 = Vector3.Distance(transform.position, _player.position);
+                    if (d2 <= catchDistance && HasLineOfSight())
+                    {
+                        _tagCooldownTimer = tagCooldown;
+                        GameEvents.RaisePlayerDamaged();
+                    }
+                    _catchTimer = 0f;
+                    _hasLastKnown = _player != null;
+                    if (_player != null) _lastKnown = _player.position;
+                    Enter(_tagCooldownTimer > 0f ? StateId.Patrol : StateId.Chase);
+                    return;
+                }
+            }
+            else
+            {
+                _catchTimer = 0f;
+                RefreshSpeedForCurrentState();
             }
 
             if (_loseSightTimer >= loseSightTimeout)
@@ -235,7 +345,7 @@ namespace Sokophobia.Enemy
             if (_stateTime >= _stunRemaining)
             {
                 // One-step de-escalation: never resume full Chase unless visible right now.
-                if (SensePlayer()) { Enter(StateId.Chase); }
+                if (_seen && _suspicion >= chaseThreshold) { Enter(StateId.Chase); }
                 else if (_hasLastKnown) { Enter(StateId.Investigate); }
                 else { Enter(StateId.Patrol); }
             }
@@ -247,21 +357,29 @@ namespace Sokophobia.Enemy
         public void Stun(float durationSeconds)
         {
             if (durationSeconds <= 0f) return;
+            // Diminishing returns: chained stuns within the window lose potency.
+            float sinceLast = Time.time - _lastStunTime;
+            if (sinceLast < stunDiminishWindow) _stunCount++;
+            else _stunCount = 0;
+            _lastStunTime = Time.time;
+            float effective = durationSeconds / (1f + _stunCount * 0.5f);
+
             if (_state != StateId.Stunned)
             {
                 // Keep lastKnown if we had eyes on the player.
-                if (_state == StateId.Chase && _player != null)
+                if ((_state == StateId.Chase || _suspicion >= investigateThreshold) && _player != null)
                 {
                     _lastKnown = _player.position;
                     _hasLastKnown = true;
                 }
-                _stunRemaining = durationSeconds;
+                _suspicion = Mathf.Min(_suspicion, investigateThreshold);
+                _stunRemaining = effective;
                 Enter(StateId.Stunned);
             }
             else
             {
                 // Extend, don't stack.
-                _stunRemaining = Mathf.Max(_stunRemaining, _stateTime + durationSeconds);
+                _stunRemaining = Mathf.Max(_stunRemaining, _stateTime + effective);
             }
         }
 
@@ -296,12 +414,37 @@ namespace Sokophobia.Enemy
             {
                 _lastKnown = _loudestNoise.Position;
                 _hasLastKnown = true;
+                _suspicion = Mathf.Max(_suspicion, investigateThreshold);
                 if (_state == StateId.Patrol || _state == StateId.Investigate)
                     Enter(StateId.Investigate);
             }
         }
 
         // ---------- Senses ----------
+        private bool IsPlayerClose()
+        {
+            if (_player == null) return false;
+            Vector3 d = _player.position - transform.position;
+            d.y = 0f;
+            return d.magnitude <= proximityRadius;
+        }
+
+        private bool HasLineOfSight()
+        {
+            if (_player == null) return false;
+            Vector3 head = transform.position + Vector3.up * headHeight;
+            Vector3 target = _player.position + Vector3.up * 1f;
+            Vector3 dir = target - head;
+            float range = dir.magnitude;
+            if (range < 0.001f) return true;
+            if (Physics.Raycast(head, dir.normalized, out var hit, range, visionBlockers))
+            {
+                if (hit.transform != _player && !hit.transform.IsChildOf(_player))
+                    return false;
+            }
+            return true;
+        }
+
         private bool SensePlayer()
         {
             if (_player == null) return false;
@@ -320,17 +463,58 @@ namespace Sokophobia.Enemy
             if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
             if (Vector3.Angle(fwd, toPlayer.normalized) > visionAngle * 0.5f) return false;
 
-            Vector3 head = transform.position + Vector3.up * headHeight;
-            Vector3 target = _player.position + Vector3.up * 1f;
-            Vector3 dir = target - head;
-            float range = dir.magnitude;
-            if (Physics.Raycast(head, dir.normalized, out var hit, range, visionBlockers))
+            return HasLineOfSight();
+        }
+
+        // ---------- Intent helpers (game-ai: decision outputs a target position) ----------
+        private Vector3 PredictIntercept()
+        {
+            if (_player == null) return _lastKnown;
+            Vector3 target = _player.position;
+            float dist = Vector3.Distance(transform.position, target);
+            float speed = Mathf.Max(0.5f, _agent.speed);
+            float eta = dist / speed;
+            Vector3 lead = _playerVel * (eta * Mathf.Clamp01(interceptLead));
+            lead.y = 0f;
+            if (lead.sqrMagnitude > 16f) lead = lead.normalized * 4f;
+            return target + lead;
+        }
+
+        private void BuildSearchPattern(Vector3 center)
+        {
+            _searchPoints.Clear();
+            _searchIndex = 0;
+            _searchPoints.Add(center);
+            int n = Mathf.Max(1, searchPointCount);
+            for (int i = 0; i < n; i++)
             {
-                // Blocked unless the first hit is the player itself.
-                if (hit.transform != _player && !hit.transform.IsChildOf(_player))
-                    return false;
+                float a = (Mathf.PI * 2f * i) / n;
+                Vector3 cand = center + new Vector3(Mathf.Cos(a) * searchRadius, 0f, Mathf.Sin(a) * searchRadius);
+                if (NavMesh.SamplePosition(cand, out var hit, 2f, NavMesh.AllAreas))
+                    _searchPoints.Add(hit.position);
             }
-            return true;
+        }
+
+        private void GoToNextSearchPoint()
+        {
+            if (_searchPoints.Count == 0)
+            {
+                BuildSearchPattern(_hasLastKnown ? _lastKnown : transform.position);
+                if (_searchPoints.Count == 0) return;
+            }
+            Vector3 dest = _searchPoints[_searchIndex % _searchPoints.Count];
+            _searchIndex++;
+            SetDestinationSafe(dest);
+        }
+
+        private void FacePlayer()
+        {
+            if (_player == null) return;
+            Vector3 d = _player.position - transform.position;
+            d.y = 0f;
+            if (d.sqrMagnitude < 0.001f) return;
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation, Quaternion.LookRotation(d.normalized), 1f - Mathf.Exp(-10f * Time.deltaTime));
         }
 
         // ---------- Motion helpers (unity-navmesh patterns) ----------
@@ -380,24 +564,31 @@ namespace Sokophobia.Enemy
         // ---------- Difficulty ----------
         private void HandlePlateProgress(Box box, GridCoord cell) => RefreshSpeedForCurrentState();
 
-        private void RefreshSpeedForCurrentState()
+        private void RefreshSpeedForCurrentState() => ApplySpeed(baseSpeedFor(_state));
+
+        private float baseSpeedFor(StateId s) => s switch
         {
-            float b = _state switch
-            {
-                StateId.Chase => chaseSpeed,
-                StateId.Investigate => investigateSpeed,
-                _ => patrolSpeed,
-            };
-            ApplySpeed(b);
+            StateId.Chase => chaseSpeed,
+            StateId.Investigate => investigateSpeed,
+            _ => patrolSpeed,
+        };
+
+        private float plateMultiplier()
+        {
+            if (_puzzle != null && _puzzle.TotalPlates > 0)
+                return 1f + ((float)_puzzle.PlacedCount / _puzzle.TotalPlates) * maxPlateBonus;
+            return 1f;
         }
 
         private void ApplySpeed(float baseSpeed)
         {
-            float mult = 1f;
-            if (_puzzle != null && _puzzle.TotalPlates > 0)
-                mult = 1f + ((float)_puzzle.PlacedCount / _puzzle.TotalPlates) * maxPlateBonus;
-            _agent.speed = baseSpeed * mult;
+            _agent.speed = baseSpeed * plateMultiplier();
         }
+
+        public StateId DebugState => _state;
+        public float DebugSuspicion => _suspicion;
+        public float InvestigateThreshold => investigateThreshold;
+        public float ChaseThreshold => chaseThreshold;
 
         private void OnDrawGizmosSelected()
         {
@@ -406,6 +597,40 @@ namespace Sokophobia.Enemy
             if (waypoints != null)
                 foreach (var w in waypoints)
                     Gizmos.DrawWireSphere(w, 0.3f);
+
+#if UNITY_EDITOR
+            // game-ai verify-by-observation: vision cone, lastKnown, search, live path.
+            Vector3 fwd = transform.forward;
+            fwd.y = 0f;
+            if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
+            fwd.Normalize();
+            float half = visionAngle * 0.5f * Mathf.Deg2Rad;
+            Vector3 left = Quaternion.Euler(0f, -half * Mathf.Rad2Deg, 0f) * fwd;
+            Vector3 right = Quaternion.Euler(0f, half * Mathf.Rad2Deg, 0f) * fwd;
+            Gizmos.color = _seen ? Color.red : Color.cyan;
+            Gizmos.DrawRay(transform.position + Vector3.up * headHeight, left * visionRange);
+            Gizmos.DrawRay(transform.position + Vector3.up * headHeight, right * visionRange);
+
+            if (_hasLastKnown)
+            {
+                Gizmos.color = Color.magenta;
+                Gizmos.DrawWireSphere(_lastKnown + Vector3.up * 0.5f, 0.4f);
+            }
+            Gizmos.color = Color.green;
+            foreach (var p in _searchPoints)
+                Gizmos.DrawWireSphere(p + Vector3.up * 0.3f, 0.25f);
+
+            if (_agent != null && _agent.hasPath)
+            {
+                Gizmos.color = Color.white;
+                Vector3 prev = transform.position;
+                foreach (var c in _agent.path.corners)
+                {
+                    Gizmos.DrawLine(prev + Vector3.up * 0.3f, c + Vector3.up * 0.3f);
+                    prev = c;
+                }
+            }
+#endif
         }
     }
 }
