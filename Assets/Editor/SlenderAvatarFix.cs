@@ -50,6 +50,81 @@ namespace Sokophobia.Editor
         [MenuItem("Sokophobia/Fix Slender Avatar")]
         private static void FixFromMenu() => Fix();
 
+        /// <summary>
+        /// Rebuilds the Slender mesh bindposes from the live bone layout
+        /// (bindpose[i] = bone[i].worldToLocal * meshRoot.localToWorld).
+        /// Use when the skinned mesh renders rigidly offset from its own bones.
+        /// Writes a mesh copy (original FBX import untouched) and points the
+        /// scene renderer at it. Edit mode only.
+        /// </summary>
+        [MenuItem("Sokophobia/Rebind Slender Bindposes")]
+        private static void RebindFromMenu() => RebindBindposes();
+
+        private const string ReboundMeshPath = "Assets/#NVJOB Slender/Slender/Mesh/SlenderRebound.asset";
+
+        public static void RebindBindposes()
+        {
+            if (EditorApplication.isPlaying)
+            {
+                Debug.LogError("[SlenderAvatarFix] Exit Play mode first.");
+                return;
+            }
+
+            var bot = GameObject.Find("Sokobot");
+            if (bot == null)
+            {
+                Debug.LogError("[SlenderAvatarFix] No 'Sokobot' in the open scene.");
+                return;
+            }
+            var smr = bot.GetComponentInChildren<SkinnedMeshRenderer>();
+            if (smr == null || smr.sharedMesh == null)
+            {
+                Debug.LogError("[SlenderAvatarFix] No SkinnedMeshRenderer under Sokobot.");
+                return;
+            }
+            var bones = smr.bones;
+            if (bones == null || bones.Length == 0)
+            {
+                Debug.LogError("[SlenderAvatarFix] Renderer has no bones array.");
+                return;
+            }
+            for (int i = 0; i < bones.Length; i++)
+            {
+                if (bones[i] == null)
+                {
+                    Debug.LogError($"[SlenderAvatarFix] bones[{i}] is null, aborting.");
+                    return;
+                }
+            }
+
+            Matrix4x4 meshRootL2W = smr.transform.localToWorldMatrix;
+            var bind = new Matrix4x4[bones.Length];
+            for (int i = 0; i < bones.Length; i++)
+                bind[i] = bones[i].worldToLocalMatrix * meshRootL2W;
+
+            Mesh copy = Object.Instantiate(smr.sharedMesh);
+            copy.name = System.IO.Path.GetFileNameWithoutExtension(ReboundMeshPath);
+            copy.bindposes = bind;
+
+            var existing = AssetDatabase.LoadAssetAtPath<Mesh>(ReboundMeshPath);
+            if (existing != null)
+            {
+                EditorUtility.CopySerialized(copy, existing);
+                Object.DestroyImmediate(copy);
+                copy = existing;
+            }
+            else
+            {
+                AssetDatabase.CreateAsset(copy, ReboundMeshPath);
+            }
+
+            smr.sharedMesh = copy;
+            EditorUtility.SetDirty(smr);
+            EditorSceneManager.MarkSceneDirty(smr.gameObject.scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log($"[SlenderAvatarFix] Rebound {bones.Length} bones -> {ReboundMeshPath}");
+        }
+
         public static void Fix()
         {
             if (EditorApplication.isPlaying)
@@ -76,9 +151,12 @@ namespace Sokophobia.Editor
                 return;
             }
 
-            // Skeleton = hips down (skips the scaled 'Slender ' model container).
+            // Include the Hips parent in the skeleton, but build the Avatar from
+            // above the 100x model container so Humanoid motion is not scaled again.
+            Transform scaledContainer = hips.parent != null ? hips.parent : hips;
+            Transform root = scaledContainer.parent != null ? scaledContainer.parent : scaledContainer;
             var bones = new List<Transform>();
-            CollectBones(hips, bones);
+            CollectBones(root, bones);
 
             var skeleton = new SkeletonBone[bones.Count];
             var byName = new Dictionary<string, Transform>();
@@ -125,7 +203,7 @@ namespace Sokophobia.Editor
                 hasTranslationDoF = false,
             };
 
-            Avatar avatar = AvatarBuilder.BuildHumanAvatar(hips.gameObject, desc);
+            Avatar avatar = AvatarBuilder.BuildHumanAvatar(root.gameObject, desc);
             if (avatar == null || !avatar.isValid)
             {
                 Debug.LogError("[SlenderAvatarFix] AvatarBuilder produced an invalid avatar. " +

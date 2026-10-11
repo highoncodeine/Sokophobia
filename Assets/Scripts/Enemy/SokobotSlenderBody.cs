@@ -6,8 +6,8 @@ using UnityEngine.Playables;
 namespace Sokophobia.Enemy
 {
     /// <summary>
-    /// Gives the Slenderman model its legs: harvests Idle/Walk/Run/Attack/Scream
-    /// clips from the stock NVJOB controller, detaches that auto-cycling
+    /// Drives the Slenderman model with Idle/Walk/Run clips from the stock
+    /// NVJOB controller, detaches that auto-cycling
     /// controller, and crossfades a Playables mixer from the AI blackboard
     /// (state + agent velocity). Add to the Sokobot root next to
     /// SokobotController; the Slender prefab instance must be a child.
@@ -27,9 +27,9 @@ namespace Sokophobia.Enemy
         [Tooltip("Fallback Run speed in m/s when the clip has no root-motion speed.")]
         [SerializeField] private float runReferenceSpeed = 2.6f;
 
-        // NOTE: the stock NVJOB controller only carries Idle/Walk/Run/Scream.
-        // Its Attack.anim is not wired into any state, so there is no Attack slot.
-        private static readonly string[] ClipNames = { "Idle", "Walk", "Run", "Scream" };
+        // The stunned state has no dedicated clip and uses Idle. Attack.anim is
+        // not wired into the stock controller, so there is no Attack slot.
+        private static readonly string[] ClipNames = { "Idle", "Walk", "Run" };
 
         private SokobotController _brain;
         private NavMeshAgent _agent;
@@ -122,8 +122,10 @@ namespace Sokophobia.Enemy
                 AnimationClip clip = byName.TryGetValue(ClipNames[i], out var c) ? c : null;
                 if (clip == null) continue;
                 var p = AnimationClipPlayable.Create(_graph, clip);
-                // Match the stock controller states, which enable foot IK.
-                p.SetApplyFootIK(true);
+                // NOTE: foot IK stays OFF (Playables foot-IK + scaled avatar root
+                // slammed the whole body ~2.6m underground). Keep planted via stride sync.
+                p.SetApplyFootIK(false);
+                _playables[i] = p;
                 _graph.Connect(p, 0, _mixer, i);
                 _mixer.SetInputWeight(i, i == 0 ? 1f : 0f);
             }
@@ -173,7 +175,7 @@ namespace Sokophobia.Enemy
                  _agent.desiredVelocity.sqrMagnitude > moveThresholdSqr);
 
             if (state == SokobotController.StateId.Stunned)
-                target = 3; // Scream
+                target = 0; // No dedicated stun clip; keep the neutral Idle pose.
             else if (state == SokobotController.StateId.Chase)
                 target = moving ? 2 : 0; // Run / Idle
             else
