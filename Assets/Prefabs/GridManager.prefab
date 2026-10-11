@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3319602138564853649}
   - component: {fileID: 7889169535383193355}
+  - component: {fileID: -6123333078041123671}
   m_Layer: 0
   m_Name: GridManager
   m_TagString: Untagged
@@ -49,3 +50,21 @@ MonoBehaviour:
   cellSize: 1
   origin: {x: -10, y: 0, z: -10}
   drawGizmos: 1
+--- !u!114 &-6123333078041123671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 828599878683011425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc7518670a3c2114eb765580a3ced027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.GridBaker
+  wallLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  rayStartHeight: 5
+  rayLength: 10
+  wallProximityThreshold: 2

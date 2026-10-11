@@ -7,6 +7,7 @@ namespace Sokophobia.Grid
     /// <summary>
     /// Authoritative grid system. Owns cell types, occupancy, and coordinate conversion.
     /// </summary>
+    [DefaultExecutionOrder(-100)]
     public class GridManager : MonoBehaviour
     {
         [Header("Grid Dimensions")]
@@ -49,6 +50,13 @@ namespace Sokophobia.Grid
         private void Awake()
         {
             EnsureInitialized();
+
+            // Bake walls from level geometry before any occupant registers.
+            var baker = GetComponent<GridBaker>();
+            if (baker != null)
+                baker.Bake();
+            else
+                Debug.LogWarning("[GridManager] No GridBaker on this GameObject — walls will not be auto-baked.");
         }
 
         // ---------- Coordinate Conversion ----------
@@ -156,5 +164,23 @@ namespace Sokophobia.Grid
                 }
             }
         }
+
+        /// <summary>
+        /// Editor-time utility: wipe all cells to Floor before re-baking.
+        /// </summary>
+        public void ResetCellsToFloor()
+        {
+            EnsureInitialized();
+            for (int x = 0; x < width; x++)
+                for (int z = 0; z < height; z++)
+                    cells[x, z] = CellType.Floor;
+        }
+
+        /// <summary>
+        /// Editor-time utility: expose a public read-only view for baking.
+        /// </summary>
+        public bool IsInBounds(int x, int z)
+            => x >= 0 && x < width && z >= 0 && z < height;
+
     }
 }
