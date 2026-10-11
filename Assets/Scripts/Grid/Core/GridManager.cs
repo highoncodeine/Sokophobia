@@ -64,7 +64,7 @@ namespace Sokophobia.Grid
 
             // Full state loss: re-derive walls from geometry ...
             var baker = GetComponent<GridBaker>();
-            if (baker != null)
+            if (baker != null && baker.BakeOnAwake)
                 baker.Bake();
 
             // ... and re-register occupants whose Starts already ran.
@@ -108,7 +108,7 @@ namespace Sokophobia.Grid
 
             // Bake walls from level geometry before any occupant registers.
             var baker = GetComponent<GridBaker>();
-            if (baker != null)
+            if (baker != null && baker.BakeOnAwake)
                 baker.Bake();
             else
                 Debug.LogWarning("[GridManager] No GridBaker on this GameObject — walls will not be auto-baked.");
