@@ -23,7 +23,7 @@ namespace Sokophobia.Grid
         private void Start()
         {
             if (gridManager == null)
-                gridManager = FindFirstObjectByType<GridManager>();
+                gridManager = FindAnyObjectByType<GridManager>();
 
             if (gridManager == null)
             {

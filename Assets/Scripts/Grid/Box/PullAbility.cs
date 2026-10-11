@@ -19,7 +19,7 @@ namespace Sokophobia.Grid
         private void Awake()
         {
             if (gridManager == null)
-                gridManager = FindFirstObjectByType<GridManager>();
+                gridManager = FindAnyObjectByType<GridManager>();
         }
 
         public void UnlockPull()
