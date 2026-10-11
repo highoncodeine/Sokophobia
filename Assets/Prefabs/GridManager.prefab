@@ -64,7 +64,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.GridBaker
   wallLayers:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 64
   rayStartHeight: 5
   rayLength: 10
-  wallProximityThreshold: 2
+  wallMinHeight: 1
+  bakeOnAwake: 1
