@@ -22,7 +22,7 @@ namespace Sokophobia.Grid
         [SerializeField] private bool drawGizmos = true;
 
         private CellType[,] cells;
-        private readonly Dictionary<GridCoord, IGridOccupant> occupants = new();
+        private Dictionary<GridCoord, IGridOccupant> occupants = new();
 
         public event Action<GridCoord, IGridOccupant> OnOccupantPlaced;
         public event Action<GridCoord, IGridOccupant> OnOccupantRemoved;
@@ -35,16 +35,71 @@ namespace Sokophobia.Grid
         private bool initialized = false;
 
         // ---------- Lifecycle ----------
+        /// <summary>
+        /// Self-healing init. Recovers if instance state was ever lost
+        /// (flag set but cells gone): rebuilds cells, re-bakes walls, and
+        /// re-registers live occupants so pushes keep working.
+        /// </summary>
         private void EnsureInitialized()
         {
-            if (initialized) return;
+            bool dimsOk = cells != null
+                && cells.GetLength(0) == width
+                && cells.GetLength(1) == height;
+            if (initialized && dimsOk && occupants != null)
+                return;
 
+            bool wasCorrupt = cells == null;
             cells = new CellType[width, height];
             for (int x = 0; x < width; x++)
                 for (int z = 0; z < height; z++)
                     cells[x, z] = CellType.Floor;
 
+            if (occupants == null)
+                occupants = new Dictionary<GridCoord, IGridOccupant>();
+
             initialized = true;
+
+            if (!wasCorrupt)
+                return;
+
+            // Full state loss: re-derive walls from geometry ...
+            var baker = GetComponent<GridBaker>();
+            if (baker != null && baker.BakeOnAwake)
+                baker.Bake();
+
+            // ... and re-register occupants whose Starts already ran.
+            // Pre-Start defaults are skipped via the position match below.
+            if (occupants.Count == 0)
+                RescanOccupants();
+        }
+
+        /// <summary>
+        /// Re-registers live boxes/player after state loss. Skips anything whose
+        /// transform doesn't match its Coord (not yet Started, or mid-lerp far).
+        /// </summary>
+        private void RescanOccupants()
+        {
+            var all = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Exclude);
+            foreach (var mb in all)
+            {
+                if (mb is not IGridOccupant occ)
+                    continue;
+                if (!mb.gameObject.activeInHierarchy || !mb.enabled)
+                    continue;
+                if (occ.Type != OccupantType.Box
+                    && occ.Type != OccupantType.Player
+                    && occ.Type != OccupantType.Enemy)
+                    continue;
+
+                Vector3 home = GridToWorld(occ.Coord);
+                Vector3 p = occ.Transform.position;
+                float flat = Vector2.Distance(
+                    new Vector2(home.x, home.z), new Vector2(p.x, p.z));
+                if (flat > cellSize)
+                    continue;
+
+                TryPlace(occ.Coord, occ);
+            }
         }
 
         private void Awake()
@@ -53,7 +108,7 @@ namespace Sokophobia.Grid
 
             // Bake walls from level geometry before any occupant registers.
             var baker = GetComponent<GridBaker>();
-            if (baker != null)
+            if (baker != null && baker.BakeOnAwake)
                 baker.Bake();
             else
                 Debug.LogWarning("[GridManager] No GridBaker on this GameObject — walls will not be auto-baked.");

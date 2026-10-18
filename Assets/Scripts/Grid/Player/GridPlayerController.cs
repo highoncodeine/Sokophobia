@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Sokophobia.Grid
 {
@@ -31,6 +32,14 @@ namespace Sokophobia.Grid
         private int facingIndex = 0; // 0 = +Z, 1 = +X, 2 = -Z, 3 = -X
         private bool isBusy = false;
 
+        /// <summary>Smoothed world-space velocity for enemy intercept prediction.</summary>
+        public Vector3 Velocity { get; private set; }
+
+        private Vector3 _prevPos;
+
+        private BoxPushController pusher;
+        private PullAbility puller;
+
         private static readonly GridCoord[] Directions =
         {
             new GridCoord(0, 1),   // +Z
@@ -41,6 +50,11 @@ namespace Sokophobia.Grid
 
         private void Awake()
         {
+            TryGetComponent(out pusher);
+            TryGetComponent(out puller);
+
+            if (gridManager == null)
+                gridManager = FindAnyObjectByType<GridManager>();
             if (gridManager == null)
             {
                 Debug.LogError("[GridPlayerController] gridManager not assigned.");
@@ -59,37 +73,40 @@ namespace Sokophobia.Grid
 
             transform.position = gridManager.GridToWorld(Coord);
             ApplyFacingInstant();
+            _prevPos = transform.position;
+        }
+
+        private void LateUpdate()
+        {
+            float dt = Time.deltaTime;
+            if (dt > 0f)
+            {
+                Vector3 inst = (transform.position - _prevPos) / dt;
+                Velocity = Vector3.Lerp(Velocity, inst, 1f - Mathf.Exp(-10f * dt));
+                if (Velocity.sqrMagnitude < 0.0004f) Velocity = Vector3.zero;
+            }
+            _prevPos = transform.position;
         }
 
         private void Update()
         {
             if (isBusy) return;
 
-            // ---- Turning ----
-            float turnInput = Input.GetAxisRaw("Horizontal");
-            if (Mathf.Abs(turnInput) > 0.5f)
-            {
-                int delta = turnInput > 0f ? 1 : -1;
-                StartCoroutine(TurnRoutine(delta));
-                return;
-            }
+            var kb = Keyboard.current;
+            if (kb == null) return;
 
-            // ---- Movement ----
-            float moveInput = Input.GetAxisRaw("Vertical");
-            if (Mathf.Abs(moveInput) > 0.5f)
-            {
-                GridCoord forward = Directions[facingIndex];
-                GridCoord dir = moveInput > 0f ? forward : -forward;
-                TryStep(dir);
-            }
+            bool left = kb.aKey.isPressed || kb.leftArrowKey.isPressed;
+            bool right = kb.dKey.isPressed || kb.rightArrowKey.isPressed;
+            bool up = kb.wKey.isPressed || kb.upArrowKey.isPressed;
+            bool down = kb.sKey.isPressed || kb.downArrowKey.isPressed;
+            bool shiftHeld = kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed;
 
-            // ---- Pull (hold Shift + move input, or dedicated key) ----
-            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            // ---- Pull (hold Shift + vertical): box in front moves into our old cell,
+            // ---- we step back. Takes priority over normal push/walk.
+            if (shiftHeld)
             {
-                float pullInput = Input.GetAxisRaw("Vertical");
-                if (Mathf.Abs(pullInput) > 0.5f)
+                if (up || down)
                 {
-                    var puller = GetComponent<PullAbility>();
                     if (puller != null)
                     {
                         GridCoord forward = Directions[facingIndex];
@@ -103,6 +120,25 @@ namespace Sokophobia.Grid
                     }
                     return;
                 }
+                // Shift held without vertical: allow turning below, don't walk.
+            }
+
+            // ---- Turning ----
+            float turnInput = (right ? 1f : 0f) + (left ? -1f : 0f);
+            if (Mathf.Abs(turnInput) > 0.5f)
+            {
+                int delta = turnInput > 0f ? 1 : -1;
+                StartCoroutine(TurnRoutine(delta));
+                return;
+            }
+
+            // ---- Movement ----
+            float moveInput = (up ? 1f : 0f) + (down ? -1f : 0f);
+            if (Mathf.Abs(moveInput) > 0.5f)
+            {
+                GridCoord forward = Directions[facingIndex];
+                GridCoord dir = moveInput > 0f ? forward : -forward;
+                TryStep(dir);
             }
         }
 
@@ -124,7 +160,6 @@ namespace Sokophobia.Grid
                 // --- Push attempt ---
                 if (occ != null && occ.Type == OccupantType.Box)
                 {
-                    var pusher = GetComponent<BoxPushController>();
                     if (pusher != null && pusher.TryPush(target, dir))
                     {
                         StartCoroutine(StepRoutine(target));
@@ -154,7 +189,6 @@ namespace Sokophobia.Grid
                 yield break;
             }
 
-            GridCoord from = Coord;
             Coord = target;
 
             Vector3 startPos = transform.position;
