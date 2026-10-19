@@ -57,6 +57,9 @@ namespace Sokophobia.UI
             if (IsVisible)
                 return;
 
+            if (TryGetComponent<VictoryScreenController>(out var victory) && victory.IsVisible)
+                return;
+
             if (gameOverTexture == null)
             {
                 Debug.LogError("[GameOverController] Assign GameOver.png in the Inspector.", this);
