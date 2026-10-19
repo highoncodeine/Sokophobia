@@ -1,12 +1,32 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Sokophobia.Grid;
 
 public class PauseController : MonoBehaviour
 {
     [SerializeField] private GameObject pauseMenu;
 
     private bool isPaused;
+    private bool isGameOver;
+
+    private void OnEnable()
+    {
+        GameEvents.OnPlayerDied += HandleGameOver;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnPlayerDied -= HandleGameOver;
+    }
+
+    private void HandleGameOver()
+    {
+        isGameOver = true;
+        isPaused = false;
+        if (pauseMenu != null)
+            pauseMenu.SetActive(false);
+    }
 
     private void Start()
     {
@@ -17,6 +37,9 @@ public class PauseController : MonoBehaviour
 
     private void Update()
     {
+        if (isGameOver)
+            return;
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             SetPaused(!isPaused);
@@ -27,7 +50,7 @@ public class PauseController : MonoBehaviour
 
     private void OnGUI()
     {
-        if (!isPaused || Event.current.type != EventType.MouseDown || Event.current.button != 0)
+        if (isGameOver || !isPaused || Event.current.type != EventType.MouseDown || Event.current.button != 0)
         {
             return;
         }
@@ -100,6 +123,9 @@ public class PauseController : MonoBehaviour
 
     private void SetPaused(bool paused)
     {
+        if (isGameOver)
+            return;
+
         isPaused = paused;
         Time.timeScale = paused ? 0f : 1f;
 

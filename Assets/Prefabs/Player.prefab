@@ -182,6 +182,9 @@ GameObject:
   - component: {fileID: 4503053807006061271}
   - component: {fileID: 6648700964063857540}
   - component: {fileID: 1367060409368197732}
+  - component: {fileID: 8154021197301896001}
+  - component: {fileID: 8154021197301896002}
+  - component: {fileID: 8154021197301896003}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -275,3 +278,66 @@ MonoBehaviour:
   gridManager: {fileID: 0}
   pullNoiseRadius: 15
   pullNoiseIntensity: 1.2
+--- !u!114 &8154021197301896001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6224745528014464613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7698bb903b64ca0ab154022d487d4f9, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.PlayerHealth
+  maxHealth: 10
+  damagePerEnemyHit: 1
+--- !u!114 &8154021197301896002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6224745528014464613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 805704c751bc4b5d9382328454ae8c79, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.UI.PlayerHealthHUD
+  fullHealthTexture: {fileID: 2800000, guid: e06f3f0b3a18cf347834e867efed9c9c, type: 3}
+  emptyHealthTexture: {fileID: 2800000, guid: 4483e06bd41d8854cb97762f9c34c447, type: 3}
+  artworkPixels:
+    serializedVersion: 2
+    x: 41
+    y: 345
+    width: 1838
+    height: 390
+  segmentRangePixels: {x: 267, y: 1877}
+  bottomLeftMargin: {x: 24, y: 24}
+  barWidth: 400
+--- !u!114 &8154021197301896003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6224745528014464613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67f3b28682f94aa5807ae3ea48b1c32d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.UI.GameOverController
+  gameOverTexture: {fileID: 2800000, guid: 292ca9e864d74d42b264b0fb85c6ce47, type: 3}
+  mainMenuScene: MainMenu
+  playAgainRegion:
+    serializedVersion: 2
+    x: 0.33
+    y: 0.54
+    width: 0.34
+    height: 0.1
+  quitRegion:
+    serializedVersion: 2
+    x: 0.44
+    y: 0.65
+    width: 0.12
+    height: 0.08
