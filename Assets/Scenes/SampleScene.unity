@@ -20,14 +20,14 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
-  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
-  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
-  m_AmbientIntensity: 1
+  m_AmbientSkyColor: {r: 1, g: 1, b: 1, a: 1}
+  m_AmbientEquatorColor: {r: 1, g: 0.033018887, b: 0.14115696, a: 1}
+  m_AmbientGroundColor: {r: 0.01886791, g: 0.01886791, b: 0.01886791, a: 1}
+  m_AmbientIntensity: 0.46
   m_AmbientMode: 0
-  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
+  m_SubtractiveShadowColor: {r: 0, g: 0, b: 0, a: 1}
   m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
-  m_HaloStrength: 0.5
+  m_HaloStrength: 0.431
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
   m_HaloTexture: {fileID: 0}
@@ -35,7 +35,7 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 1
+  m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
   m_UseRadianceAmbientProbe: 0
@@ -251,6 +251,10 @@ PrefabInstance:
       propertyPath: gridManager
       value: 
       objectReference: {fileID: 17683056}
+    - target: {fileID: 8523748554336789856, guid: 5d6b63cac31f5c04889edd4b28fc9dca, type: 3}
+      propertyPath: m_RenderPostProcessing
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1300,6 +1304,142 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fb2439e02de1e4b44bb01ae8e5c16819, type: 3}
+--- !u!1001 &1614943780
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1993444137838689706, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_Name
+      value: 100x100 Floor
+      objectReference: {fileID: 0}
+    - target: {fileID: 1993444137838689706, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185539101969683886, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185539101969683886, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185539101969683886, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185539101969683886, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185539101969683886, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185539101969683886, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185539101969683886, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185539101969683886, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185539101969683886, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9185539101969683886, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1993444137838689706, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1614943783}
+    - targetCorrespondingSourceObject: {fileID: 1993444137838689706, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1614943782}
+  m_SourcePrefab: {fileID: 100100000, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+--- !u!1 &1614943781 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1993444137838689706, guid: 1acc9d15ee2fb0348a0dc03c2d2e1b8b, type: 3}
+  m_PrefabInstance: {fileID: 1614943780}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1614943782
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1614943781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
+  m_SerializedVersion: 0
+  m_AgentTypeID: 1
+  m_CollectObjects: 0
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_GenerateLinks: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.1
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 0}
+  m_BuildHeightMesh: 0
+--- !u!114 &1614943783
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1614943781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
+  m_SerializedVersion: 0
+  m_AgentTypeID: 1
+  m_CollectObjects: 0
+  m_Size: {x: 10, y: 10, z: 10}
+  m_Center: {x: 0, y: 2, z: 0}
+  m_LayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_UseGeometry: 0
+  m_DefaultArea: 0
+  m_GenerateLinks: 0
+  m_IgnoreNavMeshAgent: 1
+  m_IgnoreNavMeshObstacle: 1
+  m_OverrideTileSize: 0
+  m_TileSize: 256
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.1
+  m_MinRegionArea: 2
+  m_NavMeshData: {fileID: 0}
+  m_BuildHeightMesh: 0
 --- !u!1001 &7116675916297743786
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1374,7 +1514,7 @@ PrefabInstance:
       objectReference: {fileID: 1309185434}
     - target: {fileID: 3896488517906142751, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
       propertyPath: m_VersionIndex
-      value: 2890
+      value: 3289
       objectReference: {fileID: 0}
     - target: {fileID: 7497412601975482459, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
       propertyPath: m_Mesh
@@ -1382,10 +1522,11 @@ PrefabInstance:
       objectReference: {fileID: 621153659}
     - target: {fileID: 7497412601975482459, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
       propertyPath: m_VersionIndex
-      value: 6523
+      value: 6922
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 9080888648736704805, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4480618265616802252, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
@@ -1523,7 +1664,7 @@ MonoBehaviour:
   m_OverrideVoxelSize: 0
   m_VoxelSize: 0.1
   m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 8a5035c04b60c054eb92551c6357de1d, type: 2}
+  m_NavMeshData: {fileID: 0}
   m_BuildHeightMesh: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
@@ -1539,3 +1680,4 @@ SceneRoots:
   - {fileID: 1288153756}
   - {fileID: 1110409809}
   - {fileID: 1548762054}
+  - {fileID: 1614943780}
