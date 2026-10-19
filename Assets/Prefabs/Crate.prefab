@@ -68,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0828f0043abf2464ab1a813d944497b9, type: 2}
+  - {fileID: 2100000, guid: dc0f4151d18ddca45a93f839542ee6a8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -129,3 +129,5 @@ MonoBehaviour:
   gridYOffset: 1
   pushNoiseRadius: 12
   pushNoiseIntensity: 1
+  pushClip: {fileID: 0}
+  pushVolume: 0.8
