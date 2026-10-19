@@ -129,6 +129,7 @@ namespace Sokophobia.Enemy
             else Debug.LogError("[Sokobot] No GridPlayerController found.");
 
             _puzzle = FindAnyObjectByType<PuzzleManager>();
+            if (_puzzle != null) _puzzle.OnPuzzleSolved += RefreshSpeedForCurrentState;
 
             // Soft check: warn (not error) so Pause-on-Error never freezes Play entry.
             // The agent registers with the mesh on enable; SokobotController.Start can
@@ -146,6 +147,7 @@ namespace Sokophobia.Enemy
             GameEvents.OnNoise += HandleNoise;
             GameEvents.OnBoxPlaced += HandlePlateProgress;
             GameEvents.OnBoxRemovedFromPlate += HandlePlateProgress;
+            if (_puzzle != null) _puzzle.OnPuzzleSolved += RefreshSpeedForCurrentState;
         }
 
         private void OnDisable()
@@ -153,6 +155,7 @@ namespace Sokophobia.Enemy
             GameEvents.OnNoise -= HandleNoise;
             GameEvents.OnBoxPlaced -= HandlePlateProgress;
             GameEvents.OnBoxRemovedFromPlate -= HandlePlateProgress;
+            if (_puzzle != null) _puzzle.OnPuzzleSolved -= RefreshSpeedForCurrentState;
         }
 
         // ---------- Per-frame driver ----------

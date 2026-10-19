@@ -50,11 +50,7 @@ namespace Sokophobia.UI
             _stunner = FindAnyObjectByType<FlashlightStunner>();
             _puzzle = FindAnyObjectByType<PuzzleManager>();
             _cam = Camera.main;
-            if (_puzzle != null)
-            {
-                _puzzle.OnProgressChanged += HandleProgress;
-                HandleProgress(_puzzle.PlacedCount, _puzzle.TotalPlates);
-            }
+            SubscribeToPuzzle();
             BuildSuspTicks();
             _suspShown = _bot != null ? _bot.DebugSuspicion : 0f;
         }
@@ -84,17 +80,50 @@ namespace Sokophobia.UI
             _suspTicks.Add(rt);
         }
 
-        private void OnEnable() => GameEvents.OnPlayerDamaged += HandleDamaged;
+        private void OnEnable()
+        {
+            GameEvents.OnPlayerDamaged += HandleDamaged;
+            SubscribeToPuzzle();
+        }
+
+        private void SubscribeToPuzzle()
+        {
+            // On the first enable, Start has not found the puzzle yet.
+            if (_puzzle == null) return;
+
+            _puzzle.OnProgressChanged += HandleProgress;
+            _puzzle.OnPuzzleSolved += HandlePuzzleSolved;
+            HandleProgress(_puzzle.PlacedCount, _puzzle.TotalPlates);
+        }
+
         private void OnDisable()
         {
             GameEvents.OnPlayerDamaged -= HandleDamaged;
-            if (_puzzle != null) _puzzle.OnProgressChanged -= HandleProgress;
+            if (_puzzle != null)
+            {
+                _puzzle.OnProgressChanged -= HandleProgress;
+                _puzzle.OnPuzzleSolved -= HandlePuzzleSolved;
+            }
         }
 
         private void HandleDamaged() => _flashAlpha = flashPeak;
         private void HandleProgress(int placed, int total)
         {
+            // Keep the escape instruction once solved, just like the open door.
+            if (_puzzle != null && _puzzle.IsSolved)
+            {
+                HandlePuzzleSolved();
+                return;
+            }
+
             _platesText.text = total > 0 ? $"PLATES  {placed}/{total}" : "PLATES  --";
+            _platesText.color = Color.white;
+        }
+
+        private void HandlePuzzleSolved()
+        {
+            _platesText.text = "ESCAPE!";
+            _platesText.color = Color.red;
         }
 
         private void Update()

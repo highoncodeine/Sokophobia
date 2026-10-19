@@ -13,6 +13,7 @@ namespace Sokophobia.Grid
     public class PuzzleManager : MonoBehaviour
     {
         public event Action<int, int> OnProgressChanged;
+        public event Action OnPuzzleSolved;
 
         private readonly Dictionary<GridCoord, Plate> _plates = new();
         private readonly HashSet<GridCoord> _satisfied = new();
@@ -20,7 +21,56 @@ namespace Sokophobia.Grid
         private GridManager _grid;
 
         public int TotalPlates => _plates.Count;
-        public int PlacedCount => _satisfied.Count;
+        public int PlacedCount
+        {
+            get
+            {
+#if UNITY_EDITOR || DEBUG
+                if (_completedForTesting)
+                    return TotalPlates;
+#endif
+                return _satisfied.Count;
+            }
+        }
+        public bool IsSolved { get; private set; }
+
+#if UNITY_EDITOR || DEBUG
+        private bool _completedForTesting;
+
+        public void CompleteForTesting()
+        {
+            if (!Application.isPlaying || (!Application.isEditor && !Debug.isDebugBuild) || IsSolved)
+                return;
+
+            if (TotalPlates == 0)
+            {
+                Debug.LogWarning("[PuzzleManager] Cannot complete the puzzle: no plates are registered.", this);
+                return;
+            }
+
+            _completedForTesting = true;
+            CompletePuzzle();
+            Debug.Log("[PuzzleManager] Puzzle completed using the testing shortcut.", this);
+        }
+#endif
+
+        private void LateUpdate()
+        {
+            if (IsSolved || TotalPlates == 0 || PlacedCount != TotalPlates)
+                return;
+
+            CompletePuzzle();
+        }
+
+        private void CompletePuzzle()
+        {
+            if (IsSolved)
+                return;
+
+            IsSolved = true;
+            Notify();
+            OnPuzzleSolved?.Invoke();
+        }
 
         private void Awake()
         {

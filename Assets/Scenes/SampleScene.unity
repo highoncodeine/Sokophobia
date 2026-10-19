@@ -294,6 +294,7 @@ GameObject:
   m_Component:
   - component: {fileID: 330603605}
   - component: {fileID: 330603606}
+  - component: {fileID: 330603607}
   m_Layer: 0
   m_Name: PuzzleManager
   m_TagString: Untagged
@@ -328,6 +329,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8232a051f19964b40a8aac64a813edf6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.PuzzleManager
+--- !u!114 &330603607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330603604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14c3756bb0ce4e23b10eed87af0dcbb9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.PuzzleCheats
+  puzzleManager: {fileID: 0}
+  completePuzzleKey: 101
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -455,18 +470,6 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
---- !u!114 &620785669
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7116675916297743788}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abd99112221416747a2a751dfb31a550, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.Plate
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -606,6 +609,24 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 857692163}
   m_Mesh: {fileID: 10205, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1047322244 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5262716201455635576, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+  m_PrefabInstance: {fileID: 7116675916297743786}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1047322251
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1047322244}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 779d70f129464e20b5acc1fe7d6edecb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.PuzzleDoor
+  puzzleManager: {fileID: 0}
 --- !u!1 &1288153754
 GameObject:
   m_ObjectHideFlags: 0
@@ -653,18 +674,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1380910591
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7116675916297743787}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abd99112221416747a2a751dfb31a550, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.Plate
 --- !u!1 &1387837485
 GameObject:
   m_ObjectHideFlags: 0
@@ -811,6 +820,185 @@ MonoBehaviour:
   moveThreshold: 0.4
   walkReferenceSpeed: 1.2
   runReferenceSpeed: 2.6
+--- !u!43 &1480053627
+Mesh:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: pb_Mesh75202:4864
+  serializedVersion: 12
+  m_SubMeshes:
+  - serializedVersion: 2
+    firstByte: 0
+    indexCount: 36
+    topology: 0
+    baseVertex: 0
+    firstVertex: 0
+    vertexCount: 24
+    localAABB:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0.06198752, y: 1.4761887, z: 0.46791744}
+  m_Shapes:
+    vertices: []
+    shapes: []
+    channels: []
+    fullWeights: []
+  m_BindPose: []
+  m_BoneNameHashes: 
+  m_RootBoneNameHash: 0
+  m_BonesAABB: []
+  m_VariableBoneCountWeights:
+    m_Data: 
+  m_MeshCompression: 0
+  m_IsReadable: 1
+  m_KeepVertices: 0
+  m_KeepIndices: 0
+  m_IndexFormat: 0
+  m_IndexBuffer: 000001000200010003000200040005000600050007000600080009000a0009000b000a000c000d000e000d000f000e00100011001200110013001200140015001600150017001600y
+  m_VertexData:
+    serializedVersion: 3
+    m_VertexCount: 24
+    m_Channels:
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 12
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 24
+      format: 0
+      dimension: 4
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 40
+      format: 0
+      dimension: 2
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    m_DataSize: 1152
+    _typelessdata: a0e67dbdc0f3bcbfe092ef3e00000000000000000000803f000080bf0000000000000000000080bfa0e6fd3d80e7f9bfa0e67d3dc0f3bcbfe092ef3e00000000000000000000803f000080bf0000000000000000000080bf0000000080e7f9bfa0e67dbdc0f3bc3fe092ef3e00000000000000000000803f000080bf0000000000000000000080bfa0e6fd3d0000803fa0e67d3dc0f3bc3fe092ef3e00000000000000000000803f000080bf0000000000000000000080bf000000000000803fa0e67d3dc0f3bcbfe092ef3e0000803f000000000000000000000000000000000000803f000080bfe0926f3f80e7f9bfa0e67d3dc0f3bcbfe092efbe0000803f000000000000000000000000000000000000803f000080bf0000000080e7f9bfa0e67d3dc0f3bc3fe092ef3e0000803f000000000000000000000000000000000000803f000080bfe0926f3f0000803fa0e67d3dc0f3bc3fe092efbe0000803f000000000000000000000000000000000000803f000080bf000000000000803fa0e67d3dc0f3bcbfe092efbe0000000000000000000080bf0000803f0000000000000000000080bfa0e6fd3d80e7f9bfa0e67dbdc0f3bcbfe092efbe0000000000000000000080bf0000803f0000000000000000000080bf0000000080e7f9bfa0e67d3dc0f3bc3fe092efbe0000000000000000000080bf0000803f0000000000000000000080bfa0e6fd3d0000803fa0e67dbdc0f3bc3fe092efbe0000000000000000000080bf0000803f0000000000000000000080bf000000000000803fa0e67dbdc0f3bcbfe092efbe000080bf00000000000000000000000000000000000080bf000080bfe0926f3f80e7f9bfa0e67dbdc0f3bcbfe092ef3e000080bf00000000000000000000000000000000000080bf000080bf0000000080e7f9bfa0e67dbdc0f3bc3fe092efbe000080bf00000000000000000000000000000000000080bf000080bfe0926f3f0000803fa0e67dbdc0f3bc3fe092ef3e000080bf00000000000000000000000000000000000080bf000080bf000000000000803fa0e67dbdc0f3bc3fe092ef3e000000000000803f000000000000803f0000000000000000000080bf000000000000803fa0e67d3dc0f3bc3fe092ef3e000000000000803f000000000000803f0000000000000000000080bfa0e6fd3d0000803fa0e67dbdc0f3bc3fe092efbe000000000000803f000000000000803f0000000000000000000080bf000000000069833da0e67d3dc0f3bc3fe092efbe000000000000803f000000000000803f0000000000000000000080bfa0e6fd3d0069833da0e67dbdc0f3bcbfe092efbe00000000000080bf00000000000080bf0000000000000000000080bfa0e6fd3d0069833da0e67d3dc0f3bcbfe092efbe00000000000080bf00000000000080bf0000000000000000000080bf000000000069833da0e67dbdc0f3bcbfe092ef3e00000000000080bf00000000000080bf0000000000000000000080bfa0e6fd3d0000803fa0e67d3dc0f3bcbfe092ef3e00000000000080bf00000000000080bf0000000000000000000080bf000000000000803f
+  m_CompressedMesh:
+    m_Vertices:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UV:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Normals:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Tangents:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Weights:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_NormalSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_TangentSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_FloatColors:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_BoneIndices:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Triangles:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UVInfo: 0
+  m_LocalAABB:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0.06198752, y: 1.4761887, z: 0.46791744}
+  m_CookingOptions: 30
+  m_PreBakeConvexCollisionMesh: 0
+  m_PreBakeTriangleCollisionMesh: 0
+  m_BakedConvexCollisionMesh: 
+  m_BakedTriangleCollisionMesh: 
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
+  m_MeshOptimizationFlags: 1
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
+  m_MeshLodInfo:
+    serializedVersion: 2
+    m_LodSelectionCurve:
+      serializedVersion: 1
+      m_LodSlope: 0
+      m_LodBias: 0
+    m_NumLevels: 1
+    m_SubMeshes:
+    - serializedVersion: 2
+      m_Levels:
+      - serializedVersion: 1
+        m_IndexStart: 0
+        m_IndexCount: 0
 --- !u!1001 &1926948098
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1030,147 +1218,34 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1067510011886507709, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 1480053627}
+    - target: {fileID: 2647201998110185716, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 1480053627}
+    - target: {fileID: 3896488517906142751, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 1480053627}
+    - target: {fileID: 3896488517906142751, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+      propertyPath: m_VersionIndex
+      value: 2800
+      objectReference: {fileID: 0}
+    - target: {fileID: 5262716201455635576, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4480618265616802252, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 5262716201455635576, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7116675916297743798}
-    - targetCorrespondingSourceObject: {fileID: 4157243994258039497, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7116675916297743797}
-    - targetCorrespondingSourceObject: {fileID: 445222805827250185, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7116675916297743796}
-    - targetCorrespondingSourceObject: {fileID: 9111313278341150759, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7116675916297743795}
-    - targetCorrespondingSourceObject: {fileID: 8421582075549151960, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7116675916297743794}
-    - targetCorrespondingSourceObject: {fileID: 8487998961829542758, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 620785669}
-    - targetCorrespondingSourceObject: {fileID: 3250505584536556415, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1380910591}
+      addedObject: {fileID: 1047322251}
   m_SourcePrefab: {fileID: 100100000, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
---- !u!1 &7116675916297743787 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3250505584536556415, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-  m_PrefabInstance: {fileID: 7116675916297743786}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &7116675916297743788 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8487998961829542758, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-  m_PrefabInstance: {fileID: 7116675916297743786}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &7116675916297743789 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8421582075549151960, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-  m_PrefabInstance: {fileID: 7116675916297743786}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &7116675916297743790 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9111313278341150759, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-  m_PrefabInstance: {fileID: 7116675916297743786}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &7116675916297743791 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 445222805827250185, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-  m_PrefabInstance: {fileID: 7116675916297743786}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &7116675916297743792 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4157243994258039497, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-  m_PrefabInstance: {fileID: 7116675916297743786}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &7116675916297743793 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4480618265616802252, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
-  m_PrefabInstance: {fileID: 7116675916297743786}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &7116675916297743794
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7116675916297743789}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abd99112221416747a2a751dfb31a550, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.Plate
---- !u!114 &7116675916297743795
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7116675916297743790}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abd99112221416747a2a751dfb31a550, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.Plate
---- !u!114 &7116675916297743796
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7116675916297743791}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abd99112221416747a2a751dfb31a550, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.Plate
---- !u!114 &7116675916297743797
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7116675916297743792}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abd99112221416747a2a751dfb31a550, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.Plate
---- !u!114 &7116675916297743798
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7116675916297743793}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7a5ac11cc976e418e8d13136b07e1f52, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.AI.Navigation::Unity.AI.Navigation.NavMeshSurface
-  m_SerializedVersion: 0
-  m_AgentTypeID: 1
-  m_CollectObjects: 0
-  m_Size: {x: 10, y: 10, z: 10}
-  m_Center: {x: 0, y: 2, z: 0}
-  m_LayerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_UseGeometry: 0
-  m_DefaultArea: 0
-  m_GenerateLinks: 0
-  m_IgnoreNavMeshAgent: 1
-  m_IgnoreNavMeshObstacle: 1
-  m_OverrideTileSize: 0
-  m_TileSize: 256
-  m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.1
-  m_MinRegionArea: 2
-  m_NavMeshData: {fileID: 23800000, guid: 8a5035c04b60c054eb92551c6357de1d, type: 2}
-  m_BuildHeightMesh: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
