@@ -58,7 +58,7 @@
     },
     "com.unity.graph-authoring": {
       "version": "1.0.0",
-      "depth": 2,
+      "depth": 1,
       "source": "builtin",
       "dependencies": {}
     },
@@ -153,7 +153,7 @@
     },
     "com.unity.searcher": {
       "version": "4.9.5",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
@@ -167,7 +167,7 @@
     },
     "com.unity.shadergraph": {
       "version": "17.6.0",
-      "depth": 1,
+      "depth": 0,
       "source": "builtin",
       "dependencies": {
         "com.unity.render-pipelines.core": "17.6.0",
