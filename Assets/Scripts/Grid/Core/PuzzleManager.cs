@@ -32,6 +32,7 @@ namespace Sokophobia.Grid
                 return _satisfied.Count;
             }
         }
+        public int RemainingPlates => Mathf.Max(0, TotalPlates - PlacedCount);
         public bool IsSolved { get; private set; }
 
 #if UNITY_EDITOR || DEBUG

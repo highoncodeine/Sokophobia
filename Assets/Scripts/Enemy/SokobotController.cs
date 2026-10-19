@@ -9,7 +9,8 @@ namespace Sokophobia.Enemy
     /// Sokobot encounter AI. FSM: Inactive -> Patrol/Investigate -> Chase -> Stunned.
     /// Decide (this FSM) outputs intent; NavMeshAgent executes motion.
     /// Noise (BoxPush/BoxPull) drives Investigate; vision + proximity drive Chase.
-    /// Speed scales with PuzzleManager progress. Stun via ISokobotStunnable.
+    /// Speed scales with the plates still unsolved: slowest at the start, and every
+    /// crate locked onto a plate makes it faster. Stun via ISokobotStunnable.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     public class SokobotController : MonoBehaviour, ISokobotStunnable
@@ -33,7 +34,13 @@ namespace Sokophobia.Enemy
         [SerializeField] private float patrolSpeed = 2f;
         [SerializeField] private float investigateSpeed = 2.5f;
         [SerializeField] private float chaseSpeed = 3.5f;
-        [SerializeField] private float maxPlateBonus = 0.8f;
+
+        [Header("Plate speed scaling (by remaining plates)")]
+        [Tooltip("Speed multiplier while every plate is still unsolved (start of the level).")]
+        [SerializeField, Range(0.05f, 1f)] private float slowestSpeedMultiplier = 0.35f;
+
+        [Tooltip("Speed multiplier once every plate is solved (0 remaining).")]
+        [SerializeField, Min(1f)] private float fastestSpeedMultiplier = 1.8f;
 
         [Header("Senses")]
         [SerializeField] private float visionRange = 8f;
@@ -576,10 +583,18 @@ namespace Sokophobia.Enemy
             _ => patrolSpeed,
         };
 
+        /// <summary>
+        /// Speed scaler driven by plates still unsolved: all remaining = slowest,
+        /// none remaining = fastest. Re-read on every plate change, so pulling a
+        /// crate back off a plate slows the bot down again.
+        /// </summary>
         private float plateMultiplier()
         {
             if (_puzzle != null && _puzzle.TotalPlates > 0)
-                return 1f + ((float)_puzzle.PlacedCount / _puzzle.TotalPlates) * maxPlateBonus;
+            {
+                float remaining01 = Mathf.Clamp01((float)_puzzle.RemainingPlates / _puzzle.TotalPlates);
+                return Mathf.Lerp(fastestSpeedMultiplier, slowestSpeedMultiplier, remaining01);
+            }
             return 1f;
         }
 
@@ -590,6 +605,7 @@ namespace Sokophobia.Enemy
 
         public StateId DebugState => _state;
         public float DebugSuspicion => _suspicion;
+        public float DebugSpeedMultiplier => plateMultiplier();
         public float InvestigateThreshold => investigateThreshold;
         public float ChaseThreshold => chaseThreshold;
 

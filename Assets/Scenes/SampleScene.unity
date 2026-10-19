@@ -1120,7 +1120,8 @@ MonoBehaviour:
   patrolSpeed: 2
   investigateSpeed: 2.5
   chaseSpeed: 3.5
-  maxPlateBonus: 0.8
+  slowestSpeedMultiplier: 0.35
+  fastestSpeedMultiplier: 1.8
   visionRange: 8
   visionAngle: 60
   headHeight: 1.6
