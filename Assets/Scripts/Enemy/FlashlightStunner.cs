@@ -35,13 +35,14 @@ namespace Sokophobia.Enemy
 
         private void Start()
         {
-            _sokobot = FindAnyObjectByType<SokobotController>();
+            // Cache the enemy even while dormant; EnemySpawner activates it later.
+            _sokobot = FindAnyObjectByType<SokobotController>(FindObjectsInactive.Include);
         }
 
         private void Update()
         {
             _cd -= Time.deltaTime;
-            if (_sokobot == null || _cam == null) return;
+            if (_sokobot == null || !_sokobot.isActiveAndEnabled || _cam == null) return;
             if (_cd > 0f) { _charge = 0f; return; }
 
             if (!BeamOnTarget())

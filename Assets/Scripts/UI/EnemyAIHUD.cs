@@ -46,7 +46,9 @@ namespace Sokophobia.UI
 
         private void Start()
         {
-            _bot = FindAnyObjectByType<SokobotController>();
+            // The enemy starts inactive and is spawned by EnemySpawner on the
+            // first plate press, so cache it even while the object is disabled.
+            _bot = FindAnyObjectByType<SokobotController>(FindObjectsInactive.Include);
             _stunner = FindAnyObjectByType<FlashlightStunner>();
             _puzzle = FindAnyObjectByType<PuzzleManager>();
             _cam = Camera.main;
