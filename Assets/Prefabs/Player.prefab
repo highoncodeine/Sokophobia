@@ -308,10 +308,10 @@ MonoBehaviour:
   emptyHealthTexture: {fileID: 2800000, guid: 4483e06bd41d8854cb97762f9c34c447, type: 3}
   artworkPixels:
     serializedVersion: 2
-    x: 41
-    y: 345
-    width: 1838
-    height: 390
+    x: 39
+    y: 327
+    width: 1862
+    height: 410
   segmentRangePixels: {x: 267, y: 1877}
   bottomLeftMargin: {x: 24, y: 24}
   barWidth: 400
