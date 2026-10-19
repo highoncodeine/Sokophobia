@@ -21,6 +21,7 @@ namespace Sokophobia.Enemy
 
         private Transform _cam;
         private SokobotController _sokobot;
+        private Collider _sokobotCollider;
         private float _cd;
         private float _charge;
 
@@ -37,6 +38,7 @@ namespace Sokophobia.Enemy
         {
             // Cache the enemy even while dormant; EnemySpawner activates it later.
             _sokobot = FindAnyObjectByType<SokobotController>(FindObjectsInactive.Include);
+            _sokobotCollider = _sokobot != null ? _sokobot.GetComponentInChildren<Collider>(true) : null;
         }
 
         private void Update()
@@ -62,17 +64,34 @@ namespace Sokophobia.Enemy
 
         private bool BeamOnTarget()
         {
-            Vector3 toBot = _sokobot.transform.position - _cam.position;
+            Vector3 aim = GetAimPoint();
+            Vector3 toBot = aim - _cam.position;
             float dist = toBot.magnitude;
-            if (dist > range || dist < 0.001f) return false;
+            if (dist > range) return false;
+            if (dist < 0.05f) return true; // point-blank: the camera is inside the body
             if (Vector3.Angle(_cam.forward, toBot.normalized) > angle * 0.5f) return false;
 
-            if (Physics.Raycast(_cam.position, toBot.normalized, out var hit, dist, blockers))
+            // Only solid geometry blocks the beam; trigger volumes do not.
+            if (Physics.Raycast(_cam.position, toBot.normalized, out var hit, dist + 0.01f, blockers, QueryTriggerInteraction.Ignore))
             {
                 if (hit.transform != _sokobot.transform && !hit.transform.IsChildOf(_sokobot.transform))
                     return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Aim at the nearest point of the Sokobot's collider hull.
+        /// The camera cannot pitch (grid controller) and the Sokobot's transform
+        /// sits at its feet, so aiming at the transform made the cone unreachable
+        /// at close range. The hull point sits at eye height when both stand on
+        /// the same floor, keeping the cone check yaw-only as intended.
+        /// </summary>
+        private Vector3 GetAimPoint()
+        {
+            if (_sokobotCollider != null && _sokobotCollider.enabled && _sokobotCollider.gameObject.activeInHierarchy)
+                return _sokobotCollider.ClosestPoint(_cam.position);
+            return _sokobot.transform.position + Vector3.up * 1f;
         }
     }
 }
