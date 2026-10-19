@@ -1355,14 +1355,34 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1040226093825477806, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 621153659}
+    - target: {fileID: 1067510011886507709, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 1309185434}
+    - target: {fileID: 2647201998110185716, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+      propertyPath: m_Mesh
+      value: 
+      objectReference: {fileID: 1309185434}
     - target: {fileID: 3896488517906142751, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 1309185434}
+    - target: {fileID: 3896488517906142751, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+      propertyPath: m_VersionIndex
+      value: 2890
+      objectReference: {fileID: 0}
     - target: {fileID: 7497412601975482459, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 621153659}
+    - target: {fileID: 7497412601975482459, guid: 8a80d9fcf4a82433181bc836d39b3a6d, type: 3}
+      propertyPath: m_VersionIndex
+      value: 6523
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
