@@ -90,7 +90,7 @@ namespace Sokophobia.Grid
 
         private void Update()
         {
-            if (isBusy) return;
+            if (Time.timeScale <= 0f || isBusy) return;
 
             var kb = Keyboard.current;
             if (kb == null) return;

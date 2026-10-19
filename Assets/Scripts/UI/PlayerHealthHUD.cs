@@ -15,7 +15,7 @@ namespace Sokophobia.UI
         [SerializeField] private Texture2D emptyHealthTexture;
 
         [Tooltip("Visible artwork bounds in the original PNG, measured from its bottom-left corner.")]
-        [SerializeField] private Rect artworkPixels = new Rect(41f, 345f, 1838f, 390f);
+        [SerializeField] private Rect artworkPixels = new Rect(39f, 327f, 1862f, 410f);
 
         [Tooltip("Left and right edges of the ten-segment bar in the original PNG, excluding the heart.")]
         [SerializeField] private Vector2 segmentRangePixels = new Vector2(267f, 1877f);
@@ -53,7 +53,7 @@ namespace Sokophobia.UI
         private void ValidateLayout()
         {
             if (artworkPixels.width <= 0f || artworkPixels.height <= 0f)
-                artworkPixels = new Rect(41f, 345f, 1838f, 390f);
+                artworkPixels = new Rect(39f, 327f, 1862f, 410f);
 
             barWidth = Mathf.Max(100f, barWidth);
         }

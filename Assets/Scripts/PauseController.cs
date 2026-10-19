@@ -9,15 +9,25 @@ public class PauseController : MonoBehaviour
 
     private bool isPaused;
     private bool isGameOver;
+    private bool isPopupVisible;
 
     private void OnEnable()
     {
         GameEvents.OnPlayerDied += HandleGameOver;
+        GameEvents.OnLevelWon += HandleGameOver;
+        GameEvents.OnGameplayPopupChanged += HandlePopupChanged;
     }
 
     private void OnDisable()
     {
         GameEvents.OnPlayerDied -= HandleGameOver;
+        GameEvents.OnLevelWon -= HandleGameOver;
+        GameEvents.OnGameplayPopupChanged -= HandlePopupChanged;
+    }
+
+    private void HandlePopupChanged(bool visible)
+    {
+        isPopupVisible = visible;
     }
 
     private void HandleGameOver()
@@ -30,14 +40,17 @@ public class PauseController : MonoBehaviour
 
     private void Start()
     {
-        Time.timeScale = 1f;
         CreateRuntimeHitboxes();
+        if (isGameOver || isPopupVisible)
+            return;
+
+        Time.timeScale = 1f;
         SetPaused(false);
     }
 
     private void Update()
     {
-        if (isGameOver)
+        if (isGameOver || isPopupVisible)
             return;
 
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -50,7 +63,7 @@ public class PauseController : MonoBehaviour
 
     private void OnGUI()
     {
-        if (isGameOver || !isPaused || Event.current.type != EventType.MouseDown || Event.current.button != 0)
+        if (isGameOver || isPopupVisible || !isPaused || Event.current.type != EventType.MouseDown || Event.current.button != 0)
         {
             return;
         }
@@ -117,13 +130,16 @@ public class PauseController : MonoBehaviour
 
     public void QuitToMainMenu()
     {
+        if (isPopupVisible)
+            return;
+
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
     }
 
     private void SetPaused(bool paused)
     {
-        if (isGameOver)
+        if (isGameOver || isPopupVisible)
             return;
 
         isPaused = paused;

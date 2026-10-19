@@ -20,6 +20,11 @@ namespace Sokophobia.Grid
         // Player lifecycle
         public static event Action OnPlayerDamaged;
         public static event Action OnPlayerDied;
+        public static event Action OnLevelWon;
+
+        // Puzzle announcements / temporary modal UI
+        public static event Action OnPuzzleDoorOpened;
+        public static event Action<bool> OnGameplayPopupChanged;
 
         // ---------- Invokers ----------
         public static void RaiseNoise(NoiseEvent e)
@@ -50,6 +55,21 @@ namespace Sokophobia.Grid
         public static void RaisePlayerDied()
         {
             OnPlayerDied?.Invoke();
+        }
+
+        public static void RaiseLevelWon()
+        {
+            OnLevelWon?.Invoke();
+        }
+
+        public static void RaisePuzzleDoorOpened()
+        {
+            OnPuzzleDoorOpened?.Invoke();
+        }
+
+        public static void RaiseGameplayPopupChanged(bool isVisible)
+        {
+            OnGameplayPopupChanged?.Invoke(isVisible);
         }
     }
 }

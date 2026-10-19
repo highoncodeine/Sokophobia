@@ -54,6 +54,8 @@ namespace Sokophobia.Grid
                 Physics.SyncTransforms();
                 baker.Bake();
             }
+
+            GameEvents.RaisePuzzleDoorOpened();
         }
     }
 }
