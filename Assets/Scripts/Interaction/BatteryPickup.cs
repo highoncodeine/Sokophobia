@@ -4,6 +4,7 @@ namespace Sokophobia.Interaction
 {
     public class BatteryPickup : MonoBehaviour, IInteractable
     {
+        [SerializeField] private AudioSource sfxSource;
         [SerializeField] private float chargeAmount = 40f;
         private bool _collected = false;
 
@@ -18,7 +19,7 @@ namespace Sokophobia.Interaction
             {
                 battery.AddCharge(chargeAmount);
                 _collected = true;
-                
+                sfxSource.Play();
                 // Hide the object (or you can Destroy(gameObject))
                 gameObject.SetActive(false);
                 Debug.Log($"Battery picked up! +{chargeAmount} charge.");

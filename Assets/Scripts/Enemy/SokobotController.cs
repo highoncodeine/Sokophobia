@@ -113,6 +113,7 @@ namespace Sokophobia.Enemy
         private float _noiseTimer;
         private NoiseEvent _loudestNoise;
         private float _loudestReach;
+        [SerializeField] private AudioSource spawnSfx;
 
         public StateId CurrentState => _state;
 
@@ -125,6 +126,7 @@ namespace Sokophobia.Enemy
 
         private void Start()
         {
+            spawnSfx.Play();
             var playerObj = FindAnyObjectByType<GridPlayerController>();
             if (playerObj != null)
             {

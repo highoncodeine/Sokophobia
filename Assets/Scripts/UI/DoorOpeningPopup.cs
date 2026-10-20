@@ -12,6 +12,7 @@ namespace Sokophobia.UI
         [SerializeField] private Texture2D popupTexture;
         [Tooltip("How many real-time seconds the announcement stays on screen while gameplay is frozen.")]
         [SerializeField, Min(0.1f)] private float displayDuration = 2f;
+        [SerializeField] private AudioSource sfxSource;
 
         private GameObject _canvasObject;
         private bool _pending;
@@ -56,7 +57,9 @@ namespace Sokophobia.UI
             else if (_pending && !_levelEnded && Time.timeScale > 0f)
             {
                 // Wait until an existing pause menu is resumed before taking over.
+                sfxSource.Play();
                 ShowPopup();
+                
             }
         }
 
