@@ -28,6 +28,10 @@ public class PauseController : MonoBehaviour
     private void HandlePopupChanged(bool visible)
     {
         isPopupVisible = visible;
+
+        // Unlock cursor while popup is visible, lock it when closed
+        Cursor.lockState = visible ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = visible;
     }
 
     private void HandleGameOver()
@@ -36,6 +40,10 @@ public class PauseController : MonoBehaviour
         isPaused = false;
         if (pauseMenu != null)
             pauseMenu.SetActive(false);
+            
+        // Ensure cursor is unlocked on death/win screens
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     private void Start()
@@ -58,7 +66,6 @@ public class PauseController : MonoBehaviour
             SetPaused(!isPaused);
             return;
         }
-
     }
 
     private void OnGUI()
@@ -88,10 +95,7 @@ public class PauseController : MonoBehaviour
 
     private void CreateRuntimeHitboxes()
     {
-        if (pauseMenu == null)
-        {
-            return;
-        }
+        if (pauseMenu == null) return;
 
         CreateHitbox("ResumeHitboxRuntime", new Vector2(0f, 38f), ResumeGame);
         CreateHitbox("QuitHitboxRuntime", new Vector2(0f, -20f), QuitToMainMenu);
@@ -100,10 +104,7 @@ public class PauseController : MonoBehaviour
     private void CreateHitbox(string objectName, Vector2 anchoredPosition, UnityEngine.Events.UnityAction onClick)
     {
         Transform existing = pauseMenu.transform.Find(objectName);
-        if (existing != null)
-        {
-            return;
-        }
+        if (existing != null) return;
 
         GameObject hitboxObject = new GameObject(objectName, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
         hitboxObject.transform.SetParent(pauseMenu.transform, false);
@@ -130,8 +131,7 @@ public class PauseController : MonoBehaviour
 
     public void QuitToMainMenu()
     {
-        if (isPopupVisible)
-            return;
+        if (isPopupVisible) return;
 
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
@@ -139,8 +139,7 @@ public class PauseController : MonoBehaviour
 
     private void SetPaused(bool paused)
     {
-        if (isGameOver || isPopupVisible)
-            return;
+        if (isGameOver || isPopupVisible) return;
 
         isPaused = paused;
         Time.timeScale = paused ? 0f : 1f;
@@ -149,6 +148,10 @@ public class PauseController : MonoBehaviour
         {
             pauseMenu.SetActive(paused);
         }
+
+        // LOCK/UNLOCK CURSOR
+        Cursor.lockState = paused ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = paused;
     }
 
     private void OnDestroy()

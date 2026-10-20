@@ -6,8 +6,7 @@ namespace Sokophobia.Grid
 {
     /// <summary>
     /// First-person grid-aligned player controller.
-    /// Moves one cell at a time via step-lerp, turns in 90° increments,
-    /// and buffers one queued input while a movement is in progress.
+    /// Free mouse look (FPS style), but moves exactly one cell at a time.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class GridPlayerController : MonoBehaviour, IGridOccupant
@@ -16,9 +15,14 @@ namespace Sokophobia.Grid
         [SerializeField] private GridManager gridManager;
         [SerializeField] private Transform cameraPivot;
 
-        [Header("Timing")]
+        [Header("Movement Timing")]
         [SerializeField] private float moveDuration = 0.18f;
-        [SerializeField] private float turnDuration = 0.12f;
+
+        [Header("Mouse Look")]
+        [SerializeField] private float mouseSensitivity = 0.15f;
+        [SerializeField] private float pitchMin = -80f;
+        [SerializeField] private float pitchMax = 80f;
+        [SerializeField] private bool invertY = false;
 
         [Header("Debug")]
         [SerializeField] private bool logSteps = false;
@@ -29,12 +33,13 @@ namespace Sokophobia.Grid
         public Transform Transform => transform;
 
         // ---------- State ----------
-        private int facingIndex = 0; // 0 = +Z, 1 = +X, 2 = -Z, 3 = -X
+        private float yaw = 0f;          // Free-look horizontal angle
+        private float pitch = 0f;        // Free-look vertical angle
+        private int facingIndex = 0;     // Derived nearest cardinal (0=+Z, 1=+X, 2=-Z, 3=-X)
         private bool isBusy = false;
 
         /// <summary>Smoothed world-space velocity for enemy intercept prediction.</summary>
         public Vector3 Velocity { get; private set; }
-
         private Vector3 _prevPos;
 
         private BoxPushController pusher;
@@ -72,8 +77,15 @@ namespace Sokophobia.Grid
             }
 
             transform.position = gridManager.GridToWorld(Coord);
-            ApplyFacingInstant();
+            
+            yaw = transform.eulerAngles.y;
+            ApplyLook();
+            
             _prevPos = transform.position;
+
+            // Lock cursor for FPS mouse look
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
 
         private void LateUpdate()
@@ -90,7 +102,11 @@ namespace Sokophobia.Grid
 
         private void Update()
         {
-            if (Time.timeScale <= 0f || isBusy) return;
+            if (Time.timeScale <= 0f) return;
+
+            HandleMouseLook();
+
+            if (isBusy) return;
 
             var kb = Keyboard.current;
             if (kb == null) return;
@@ -101,45 +117,89 @@ namespace Sokophobia.Grid
             bool down = kb.sKey.isPressed || kb.downArrowKey.isPressed;
             bool shiftHeld = kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed;
 
-            // ---- Pull (hold Shift + vertical): box in front moves into our old cell,
-            // ---- we step back. Takes priority over normal push/walk.
-            if (shiftHeld)
+            // ---- Pull (hold Shift + S/Down): box in front moves into our old cell ----
+            if (shiftHeld && down)
             {
-                if (up || down)
+                if (puller != null)
                 {
-                    if (puller != null)
+                    facingIndex = GetNearestCardinalIndex();
+                    GridCoord forward = Directions[facingIndex];
+                    GridCoord boxCell = Coord + forward;
+                    GridCoord? dest = puller.TryPull(Coord, boxCell, forward);
+
+                    if (dest.HasValue)
                     {
-                        GridCoord forward = Directions[facingIndex];
-                        GridCoord boxCell = Coord + forward;
-                        GridCoord? dest = puller.TryPull(Coord, boxCell, forward);
-
-                        if (dest.HasValue)
-                        {
-                            StartCoroutine(StepRoutine(dest.Value));
-                        }
+                        StartCoroutine(StepRoutine(dest.Value));
                     }
-                    return;
                 }
-                // Shift held without vertical: allow turning below, don't walk.
-            }
-
-            // ---- Turning ----
-            float turnInput = (right ? 1f : 0f) + (left ? -1f : 0f);
-            if (Mathf.Abs(turnInput) > 0.5f)
-            {
-                int delta = turnInput > 0f ? 1 : -1;
-                StartCoroutine(TurnRoutine(delta));
                 return;
             }
 
-            // ---- Movement ----
-            float moveInput = (up ? 1f : 0f) + (down ? -1f : 0f);
-            if (Mathf.Abs(moveInput) > 0.5f)
+            // ---- Movement & Strafing ----
+            float forwardInput = (up ? 1f : 0f) + (down ? -1f : 0f);
+            float strafeInput = (right ? 1f : 0f) + (left ? -1f : 0f);
+
+            GridCoord dir = default;
+            bool hasInput = false;
+
+            facingIndex = GetNearestCardinalIndex(); // Update facing based on mouse aim
+
+            if (Mathf.Abs(forwardInput) > 0.5f)
             {
                 GridCoord forward = Directions[facingIndex];
-                GridCoord dir = moveInput > 0f ? forward : -forward;
+                dir = forwardInput > 0f ? forward : -forward;
+                hasInput = true;
+            }
+            else if (Mathf.Abs(strafeInput) > 0.5f)
+            {
+                int rightIdx = (facingIndex + 1) % 4;
+                int leftIdx = (facingIndex + 3) % 4;
+                dir = strafeInput > 0f ? Directions[rightIdx] : Directions[leftIdx];
+                hasInput = true;
+            }
+
+            if (hasInput)
+            {
                 TryStep(dir);
             }
+        }
+
+        // ---------- Mouse Look ----------
+        private void HandleMouseLook()
+        {
+            if (Mouse.current == null) return;
+            if (Cursor.lockState != CursorLockMode.Locked) return;
+
+            Vector2 delta = Mouse.current.delta.ReadValue();
+            
+            yaw += delta.x * mouseSensitivity;
+            
+            // Invert Y logic based on FPS standards
+            pitch += (invertY ? delta.y : -delta.y) * mouseSensitivity;
+            pitch = Mathf.Clamp(pitch, pitchMin, pitchMax);
+
+            ApplyLook();
+        }
+
+        private void ApplyLook()
+        {
+            // Yaw rotates the whole player body
+            transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
+
+            // Pitch only rotates the camera pivot
+            if (cameraPivot != null)
+                cameraPivot.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+        }
+
+        /// <summary>
+        /// Convert free yaw into nearest 90° cardinal (0=+Z, 1=+X, 2=-Z, 3=-X).
+        /// </summary>
+        private int GetNearestCardinalIndex()
+        {
+            float normalizedYaw = yaw % 360f;
+            if (normalizedYaw < 0f) normalizedYaw += 360f;
+
+            return Mathf.RoundToInt(normalizedYaw / 90f) % 4;
         }
 
         // ---------- Movement ----------
@@ -204,33 +264,6 @@ namespace Sokophobia.Grid
             transform.position = endPos;
 
             isBusy = false;
-        }
-
-        // ---------- Turning ----------
-        private IEnumerator TurnRoutine(int direction)
-        {
-            isBusy = true;
-
-            facingIndex = (facingIndex + direction + 4) % 4;
-
-            Quaternion startRot = transform.rotation;
-            Quaternion endRot = Quaternion.Euler(0f, facingIndex * 90f, 0f);
-
-            float t = 0f;
-            while (t < turnDuration)
-            {
-                t += Time.deltaTime;
-                transform.rotation = Quaternion.Slerp(startRot, endRot, t / turnDuration);
-                yield return null;
-            }
-            transform.rotation = endRot;
-
-            isBusy = false;
-        }
-
-        private void ApplyFacingInstant()
-        {
-            transform.rotation = Quaternion.Euler(0f, facingIndex * 90f, 0f);
         }
     }
 }
