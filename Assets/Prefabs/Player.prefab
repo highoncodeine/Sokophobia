@@ -188,6 +188,7 @@ GameObject:
   - component: {fileID: 8154021197301896004}
   - component: {fileID: 8154021197301896005}
   - component: {fileID: 8154021197301896006}
+  - component: {fileID: 1668538331600298193}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -251,7 +252,10 @@ MonoBehaviour:
   gridManager: {fileID: 0}
   cameraPivot: {fileID: 1131990949148335950}
   moveDuration: 0.18
-  turnDuration: 0.12
+  mouseSensitivity: 0.15
+  pitchMin: -80
+  pitchMax: 80
+  invertY: 0
   logSteps: 0
 --- !u!114 &6648700964063857540
 MonoBehaviour:
@@ -291,7 +295,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a7698bb903b64ca0ab154022d487d4f9, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.PlayerHealth
   maxHealth: 10
   damagePerEnemyHit: 1
@@ -305,7 +309,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 805704c751bc4b5d9382328454ae8c79, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.UI.PlayerHealthHUD
   fullHealthTexture: {fileID: 2800000, guid: e06f3f0b3a18cf347834e867efed9c9c, type: 3}
   emptyHealthTexture: {fileID: 2800000, guid: 4483e06bd41d8854cb97762f9c34c447, type: 3}
@@ -328,7 +332,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 67f3b28682f94aa5807ae3ea48b1c32d, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.UI.GameOverController
   gameOverTexture: {fileID: 2800000, guid: 292ca9e864d74d42b264b0fb85c6ce47, type: 3}
   mainMenuScene: MainMenu
@@ -354,7 +358,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 85714e39355d4c86a75102aa5e77ee80, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.UI.VictoryScreenController
   victoryTexture: {fileID: 2800000, guid: e04924cd037246b8a16fc759164e05bd, type: 3}
   mainMenuScene: MainMenu
@@ -380,8 +384,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6dc7b750dfe04b41a6155db001cbab60, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Grid.QuickRestart
+  restartKey: 98
 --- !u!114 &8154021197301896006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -392,7 +397,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 203029645ed54e96ba38cba6df1193d9, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.UI.DoorOpeningPopup
   popupTexture: {fileID: 2800000, guid: 92cd2d81a413439fa2fc78b5986212d4, type: 3}
   displayDuration: 2
+--- !u!114 &1668538331600298193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6224745528014464613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be8350b0037ca524097ff234521da19e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.UI.CrosshairHUD
