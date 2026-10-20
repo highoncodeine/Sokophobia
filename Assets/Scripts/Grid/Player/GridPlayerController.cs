@@ -27,6 +27,8 @@ namespace Sokophobia.Grid
         [Header("Debug")]
         [SerializeField] private bool logSteps = false;
 
+        [SerializeField] private AudioSource runSfx;
+
         // ---------- IGridOccupant ----------
         public GridCoord Coord { get; private set; }
         public OccupantType Type => OccupantType.Player;
@@ -242,10 +244,21 @@ namespace Sokophobia.Grid
         {
             isBusy = true;
 
+            // 1. Play the audio if it's not already playing
+            if (runSfx != null && !runSfx.isPlaying)
+            {
+                runSfx.Play(); // Resumes from where it was paused
+            }
+
             if (!gridManager.TryMove(Coord, target))
             {
                 Debug.LogWarning($"[GridPlayerController] TryMove failed: {Coord} -> {target}");
                 isBusy = false;
+                
+                // Stop audio if the move failed and we are completely stuck
+                if (runSfx != null && runSfx.isPlaying)
+                    runSfx.Pause();
+                    
                 yield break;
             }
 
@@ -263,7 +276,17 @@ namespace Sokophobia.Grid
             }
             transform.position = endPos;
 
+            // 2. Mark the physical movement as finished
             isBusy = false;
+
+            // 3. Wait exactly one frame to check if they are still holding the key
+            yield return null;
+
+            // 4. If we are STILL not busy after that frame, the player actually stopped
+            if (!isBusy && runSfx != null && runSfx.isPlaying)
+            {
+                runSfx.Pause(); 
+            }
         }
     }
 }

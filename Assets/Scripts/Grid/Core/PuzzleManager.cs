@@ -20,6 +20,8 @@ namespace Sokophobia.Grid
 
         private GridManager _grid;
 
+        [SerializeField] private AudioSource plateSfx;
+
         public int TotalPlates => _plates.Count;
         public int PlacedCount
         {
@@ -127,6 +129,8 @@ namespace Sokophobia.Grid
                 GameEvents.RaiseBoxPlaced(box, c);
                 Notify();
             }
+
+            plateSfx.Play();
         }
 
         private void HandleRemoved(GridCoord c, IGridOccupant o)

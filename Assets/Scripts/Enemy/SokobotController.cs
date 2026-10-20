@@ -114,6 +114,9 @@ namespace Sokophobia.Enemy
         private NoiseEvent _loudestNoise;
         private float _loudestReach;
         [SerializeField] private AudioSource spawnSfx;
+        [SerializeField] private AudioSource stunSfx;
+        [SerializeField] private AudioSource chaseSfx;
+        [SerializeField] private AudioSource patrolSfx;
 
         public StateId CurrentState => _state;
 
@@ -241,6 +244,7 @@ namespace Sokophobia.Enemy
                     _agent.ResetPath();
                     break;
                 case StateId.Patrol:
+                    patrolSfx.Play();
                     _agent.isStopped = false;
                     ApplySpeed(patrolSpeed);
                     GoToNextWaypoint();
@@ -252,6 +256,7 @@ namespace Sokophobia.Enemy
                     GoToNextSearchPoint();
                     break;
                 case StateId.Chase:
+                    chaseSfx.Play();
                     _agent.isStopped = false;
                     _loseSightTimer = 0f;
                     _repathTimer = 0f;
@@ -368,6 +373,7 @@ namespace Sokophobia.Enemy
 
         public void Stun(float durationSeconds)
         {
+            stunSfx.Play();
             if (durationSeconds <= 0f) return;
             // Diminishing returns: chained stuns within the window lose potency.
             float sinceLast = Time.time - _lastStunTime;

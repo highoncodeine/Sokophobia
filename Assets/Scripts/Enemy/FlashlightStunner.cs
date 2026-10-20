@@ -36,6 +36,7 @@ namespace Sokophobia.Enemy
         private float _cd;
         private float _charge;
         private bool _needsRelease;
+        private bool _wasHighBeamActive;
 
         /// <summary>True while the high beam is being held and can build stun charge.</summary>
         public bool IsHighBeamActive { get; private set; }
@@ -48,6 +49,8 @@ namespace Sokophobia.Enemy
 
         /// <summary>0..1 high-beam charge, for HUD/telegraphs.</summary>
         public float Charge01 => Mathf.Clamp01(_charge / Mathf.Max(0.05f, chargeTime));
+
+        [SerializeField] private AudioSource flashlightSfx;
 
         private void Awake()
         {
@@ -80,6 +83,22 @@ namespace Sokophobia.Enemy
                 && !_needsRelease
                 && _cd <= 0f
                 && CanAffordHighBeam();
+            
+            if (IsHighBeamActive && !_wasHighBeamActive)
+            {
+                if (flashlightSfx != null) 
+                {
+                    flashlightSfx.Play();
+                }
+            }
+            
+            _wasHighBeamActive = IsHighBeamActive; 
+
+            if (!IsHighBeamActive)
+            {
+                _charge = 0f;
+                return;
+            }
 
             if (!IsHighBeamActive)
             {

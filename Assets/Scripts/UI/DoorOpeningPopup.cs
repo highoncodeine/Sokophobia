@@ -57,7 +57,6 @@ namespace Sokophobia.UI
             else if (_pending && !_levelEnded && Time.timeScale > 0f)
             {
                 // Wait until an existing pause menu is resumed before taking over.
-                sfxSource.Play();
                 ShowPopup();
                 
             }
@@ -65,6 +64,7 @@ namespace Sokophobia.UI
 
         private void ShowPopup()
         {
+            sfxSource.Play();
             _pending = false;
             _hasShown = true;
             if (popupTexture == null)

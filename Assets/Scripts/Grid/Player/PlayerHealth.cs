@@ -10,6 +10,7 @@ namespace Sokophobia.Grid
     {
         [SerializeField, Min(1)] private int maxHealth = 10;
         [SerializeField, Min(1)] private int damagePerEnemyHit = 1;
+        [SerializeField] private AudioSource damageSfx;
 
         public event Action<int, int> OnHealthChanged;
 
@@ -39,6 +40,7 @@ namespace Sokophobia.Grid
 
         public void TakeDamage(int amount)
         {
+            damageSfx.Play();
             if (!isActiveAndEnabled || IsDead || amount <= 0 || Time.timeScale <= 0f)
                 return;
 

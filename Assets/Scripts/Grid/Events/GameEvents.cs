@@ -39,6 +39,7 @@ namespace Sokophobia.Grid
 
         public static void RaiseBoxPlaced(Box box, GridCoord cell)
         {
+            
             OnBoxPlaced?.Invoke(box, cell);
         }
 
