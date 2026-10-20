@@ -189,6 +189,9 @@ GameObject:
   - component: {fileID: 8154021197301896005}
   - component: {fileID: 8154021197301896006}
   - component: {fileID: 1668538331600298193}
+  - component: {fileID: -4553715594878352660}
+  - component: {fileID: 3680332331392228664}
+  - component: {fileID: -2735668639197011579}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -413,3 +416,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be8350b0037ca524097ff234521da19e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.UI.CrosshairHUD
+--- !u!114 &-4553715594878352660
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6224745528014464613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d20ef01cb6b6afc479b8abcffc490f66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Interaction.PlayerInteractor
+  playerCamera: {fileID: 0}
+  interactRange: 2.5
+  interactMask:
+    serializedVersion: 2
+    m_Bits: 192
+--- !u!114 &3680332331392228664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6224745528014464613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc06698d39349b249b9eccaba1bd05d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Interaction.FlashlightBattery
+  maxCharge: 100
+  startCharge: 100
+--- !u!114 &-2735668639197011579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6224745528014464613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6112532d3f90f984a956d7524f6ffba5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Sokophobia.Enemy.FlashlightStunner
+  range: 10
+  angle: 30
+  stunDuration: 3
+  cooldown: 1
+  blockers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  chargeTime: 0.6
+  batteryCost: 20

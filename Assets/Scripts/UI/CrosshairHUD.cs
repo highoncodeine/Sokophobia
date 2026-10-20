@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Sokophobia.Enemy;
+using Sokophobia.Interaction;
 
 namespace Sokophobia.UI
 {
@@ -10,12 +10,15 @@ namespace Sokophobia.UI
     {
         private GameObject _canvasObject;
         private Image _centerDot;
-        private Image _tickTop, _tickBottom, _tickLeft, _tickRight;
-
-        private FlashlightStunner _flashlight; // Optional, for reactive color
+        private Image[] _ticks;
+        private Text _promptText;
+        private Text _batteryText;
+        
+        private PlayerInteractor _interactor;
+        private FlashlightBattery _battery;
 
         private readonly Color _normalColor = new Color(1f, 1f, 1f, 0.7f);
-        private readonly Color _targetColor = new Color(0f, 1f, 1f, 1f); // Cyan when aiming at bot
+        private readonly Color _targetColor = new Color(1f, 0.8f, 0f, 1f); // Yellow for interactable
 
         private void Awake()
         {
@@ -24,52 +27,92 @@ namespace Sokophobia.UI
 
         private void Start()
         {
-            // Auto-find the stunner if it exists in the scene
-            _flashlight = FindAnyObjectByType<FlashlightStunner>();
+            _interactor = GetComponent<PlayerInteractor>();
+            _battery = GetComponent<FlashlightBattery>();
         }
 
         private void Update()
         {
-            // Hide when paused, game over, or popup is open (TimeScale becomes 0)
             bool gameplayActive = Time.timeScale > 0f;
             _canvasObject.SetActive(gameplayActive);
-
             if (!gameplayActive) return;
 
-            // Color logic: React to flashlight target
-            bool isTargeted = _flashlight != null && _flashlight.Charge01 > 0.01f; 
-            // (You can change this later to check _flashlight.BeamOnTargetNow if OpenCode implemented it)
+            // 1. Crosshair & Interaction Logic
+            if (_interactor != null)
+            {
+                Color c = _interactor.HasTarget ? _targetColor : _normalColor;
+                
+                _centerDot.color = c;
+                foreach (var tick in _ticks) tick.color = c;
 
-            Color c = isTargeted ? _targetColor : _normalColor;
-            _centerDot.color = c;
-            _tickTop.color = c;
-            _tickBottom.color = c;
-            _tickLeft.color = c;
-            _tickRight.color = c;
+                _promptText.text = _interactor.HasTarget ? $"[E] {_interactor.CurrentPrompt}" : "";
+            }
+
+            // 2. Battery Logic
+            if (_battery != null && _batteryText != null)
+            {
+                int percent = Mathf.RoundToInt(_battery.Charge01 * 100f);
+                _batteryText.text = $"BATTERY: {percent}%";
+                _batteryText.color = percent < 20 ? Color.red : Color.white;
+            }
         }
 
         private void BuildCanvas()
         {
-            // 1. Create the Canvas
+            // Create Canvas
             _canvasObject = new GameObject("CrosshairCanvas", typeof(Canvas), typeof(CanvasScaler));
             _canvasObject.transform.SetParent(transform, false);
             
             Canvas canvas = _canvasObject.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            // Setting to 90 keeps it below EnemyAIHUD (100) but above PauseMenu (0)
-            canvas.sortingOrder = 90; 
+            canvas.sortingOrder = 90; // Below EnemyAIHUD (100), above PauseMenu (0)
 
             CanvasScaler scaler = _canvasObject.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
 
-            // 2. Create the pieces
+            // Create Crosshair Pieces
             _centerDot = CreateImage("Dot", new Vector2(4f, 4f), _canvasObject.transform, _normalColor);
             
-            // 4 ticks around the center
-            _tickTop    = CreateImage("TickTop", new Vector2(2f, 8f), _canvasObject.transform, _normalColor, new Vector2(0f, 10f));
-            _tickBottom = CreateImage("TickBottom", new Vector2(2f, 8f), _canvasObject.transform, _normalColor, new Vector2(0f, -10f));
-            _tickLeft   = CreateImage("TickLeft", new Vector2(8f, 2f), _canvasObject.transform, _normalColor, new Vector2(-10f, 0f));
-            _tickRight  = CreateImage("TickRight", new Vector2(8f, 2f), _canvasObject.transform, _normalColor, new Vector2(10f, 0f));
+            _ticks = new Image[4];
+            _ticks[0] = CreateImage("TickTop", new Vector2(2f, 8f), _canvasObject.transform, _normalColor, new Vector2(0f, 10f));
+            _ticks[1] = CreateImage("TickBottom", new Vector2(2f, 8f), _canvasObject.transform, _normalColor, new Vector2(0f, -10f));
+            _ticks[2] = CreateImage("TickLeft", new Vector2(8f, 2f), _canvasObject.transform, _normalColor, new Vector2(-10f, 0f));
+            _ticks[3] = CreateImage("TickRight", new Vector2(8f, 2f), _canvasObject.transform, _normalColor, new Vector2(10f, 0f));
+
+            // Create Prompt Text (Below crosshair)
+            GameObject textObj = new GameObject("PromptText", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            textObj.transform.SetParent(_canvasObject.transform, false);
+            RectTransform rt = textObj.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = new Vector2(0f, -40f);
+            rt.sizeDelta = new Vector2(400f, 50f);
+            
+            _promptText = textObj.GetComponent<Text>();
+            _promptText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _promptText.alignment = TextAnchor.MiddleCenter;
+            _promptText.color = Color.white;
+            _promptText.fontSize = 18;
+
+            // Create Battery Text (Bottom Right)
+            GameObject batObj = new GameObject("BatteryText", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
+            batObj.transform.SetParent(_canvasObject.transform, false);
+            RectTransform brt = batObj.GetComponent<RectTransform>();
+
+            // Anchor to Bottom Right
+            brt.anchorMin = new Vector2(1f, 0f);
+            brt.anchorMax = new Vector2(1f, 0f);
+            brt.pivot = new Vector2(1f, 0f);
+            brt.anchoredPosition = new Vector2(-30f, 30f); // 30px from bottom-right
+            brt.sizeDelta = new Vector2(200f, 40f);
+
+            _batteryText = batObj.GetComponent<Text>();
+            _batteryText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _batteryText.alignment = TextAnchor.LowerRight;
+            _batteryText.color = Color.white;
+            _batteryText.fontSize = 20;
+            _batteryText.fontStyle = FontStyle.Bold;
+            _batteryText.text = "BATTERY: --"; // Default text for debugging
         }
 
         private Image CreateImage(string name, Vector2 size, Transform parent, Color color, Vector2 offset = default)
@@ -86,7 +129,7 @@ namespace Sokophobia.UI
 
             Image img = obj.GetComponent<Image>();
             img.color = color;
-            img.raycastTarget = false; // Crucial: Don't block clicks
+            img.raycastTarget = false;
 
             return img;
         }

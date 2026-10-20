@@ -1,4 +1,5 @@
 using UnityEngine;
+using Sokophobia.Interaction; // Added for FlashlightBattery
 
 namespace Sokophobia.Enemy
 {
@@ -15,13 +16,20 @@ namespace Sokophobia.Enemy
         [SerializeField] private float stunDuration = 3f;
         [SerializeField] private float cooldown = 1f;
         [SerializeField] private LayerMask blockers = ~0;
+        
         [Header("Charge (counterplay)")]
         [Tooltip("How long the beam must stay on Sokobot before the stun fires.")]
         [SerializeField] private float chargeTime = 0.6f;
 
+        [Header("Battery")]
+        [Tooltip("How much battery is consumed per successful stun.")]
+        [SerializeField] private float batteryCost = 20f;
+
         private Transform _cam;
         private SokobotController _sokobot;
         private Collider _sokobotCollider;
+        private FlashlightBattery _battery; // Added
+        
         private float _cd;
         private float _charge;
 
@@ -32,6 +40,9 @@ namespace Sokophobia.Enemy
         {
             var cam = Camera.main;
             _cam = cam != null ? cam.transform : transform;
+            
+            // Get the battery component
+            _battery = GetComponent<FlashlightBattery>();
         }
 
         private void Start()
@@ -45,6 +56,14 @@ namespace Sokophobia.Enemy
         {
             _cd -= Time.deltaTime;
             if (_sokobot == null || !_sokobot.isActiveAndEnabled || _cam == null) return;
+            
+            // If we have no battery, we cannot stun
+            if (_battery != null && _battery.CurrentCharge <= 0f)
+            {
+                _charge = 0f;
+                return; 
+            }
+
             if (_cd > 0f) { _charge = 0f; return; }
 
             if (!BeamOnTarget())
@@ -54,8 +73,19 @@ namespace Sokophobia.Enemy
             }
 
             _charge += Time.deltaTime;
+            
             if (_charge >= chargeTime)
             {
+                // Try to consume battery before firing
+                if (_battery != null && !_battery.TryConsume(batteryCost))
+                {
+                    // Not enough battery! Reset charge and let the player know.
+                    _charge = 0f;
+                    _cd = cooldown;
+                    Debug.Log("Not enough battery to stun!");
+                    return;
+                }
+
                 _charge = 0f;
                 _cd = cooldown;
                 _sokobot.Stun(stunDuration);
@@ -82,10 +112,6 @@ namespace Sokophobia.Enemy
 
         /// <summary>
         /// Aim at the nearest point of the Sokobot's collider hull.
-        /// The camera cannot pitch (grid controller) and the Sokobot's transform
-        /// sits at its feet, so aiming at the transform made the cone unreachable
-        /// at close range. The hull point sits at eye height when both stand on
-        /// the same floor, keeping the cone check yaw-only as intended.
         /// </summary>
         private Vector3 GetAimPoint()
         {
