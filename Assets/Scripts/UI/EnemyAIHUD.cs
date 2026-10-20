@@ -27,6 +27,7 @@ namespace Sokophobia.UI
         private float _suspShown;
         private readonly List<RectTransform> _suspTicks = new();
         private RectTransform _chargeFill;
+        private Image _chargeFillImg;
         private GameObject _chargeBar;
         private Text _platesText;
         private Image _flash;
@@ -180,11 +181,27 @@ namespace Sokophobia.UI
                 }
             }
 
-            // Flashlight charge bar.
+            // High-beam charge bar. While discharging, the bar refills to show
+            // when the next high beam is ready.
             float charge = _stunner != null ? _stunner.Charge01 : 0f;
-            _chargeBar.SetActive(charge > 0.01f);
-            if (charge > 0.01f)
+            float cooldown = _stunner != null ? _stunner.Cooldown01 : 0f;
+            bool charging = charge > 0.01f;
+            bool recharging = !charging && cooldown > 0.01f;
+
+            _chargeBar.SetActive(charging || recharging);
+
+            if (charging)
+            {
                 _chargeFill.sizeDelta = new Vector2(220f * charge, _chargeFill.sizeDelta.y);
+                if (_chargeFillImg != null) _chargeFillImg.color = Color.cyan;
+            }
+            else if (recharging)
+            {
+                _chargeFill.sizeDelta = new Vector2(
+                    220f * (1f - cooldown), _chargeFill.sizeDelta.y);
+                if (_chargeFillImg != null)
+                    _chargeFillImg.color = new Color(0.25f, 0.5f, 0.6f, 0.9f);
+            }
 
             UpdateArrow(state);
         }
@@ -263,6 +280,7 @@ namespace Sokophobia.UI
             // Flashlight charge, bottom-center.
             _chargeBar = Bar(new Vector2(0.5f, 0f), new Vector2(0f, 44f), 220f, 10f,
                 new Color(0f, 0f, 0f, 0.6f), Color.cyan, out _chargeFill);
+            _chargeFillImg = _chargeFill.GetComponent<Image>();
             _chargeBar.SetActive(false);
 
             // Chase arrow (hidden until needed).

@@ -1,11 +1,13 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Sokophobia.Interaction; // Added for FlashlightBattery
 
 namespace Sokophobia.Enemy
 {
     /// <summary>
-    /// First stun trigger: flashlight beam. Each cooldown tick checks cone + LOS
-    /// from the player camera to Sokobot and calls ISokobotStunnable.Stun.
+    /// High-beam stun trigger: while the player holds LMB, checks cone + LOS
+    /// from the player camera to Sokobot, builds charge, then calls
+    /// ISokobotStunnable.Stun and starts the high-beam discharge cooldown.
     /// Attach near the player (uses Camera.main by default).
     /// </summary>
     public class FlashlightStunner : MonoBehaviour
@@ -14,15 +16,16 @@ namespace Sokophobia.Enemy
         [SerializeField] private float range = 10f;
         [SerializeField] private float angle = 30f;
         [SerializeField] private float stunDuration = 3f;
-        [SerializeField] private float cooldown = 1f;
+        [Tooltip("High-beam discharge time after a successful stun.")]
+        [SerializeField] private float cooldown = 2.5f;
         [SerializeField] private LayerMask blockers = ~0;
         
         [Header("Charge (counterplay)")]
-        [Tooltip("How long the beam must stay on Sokobot before the stun fires.")]
+        [Tooltip("How long the high beam must stay on Sokobot before the stun fires.")]
         [SerializeField] private float chargeTime = 0.6f;
 
         [Header("Battery")]
-        [Tooltip("How much battery is consumed per successful stun.")]
+        [Tooltip("How much battery is consumed per successful high-beam stun.")]
         [SerializeField] private float batteryCost = 20f;
 
         private Transform _cam;
@@ -32,8 +35,18 @@ namespace Sokophobia.Enemy
         
         private float _cd;
         private float _charge;
+        private bool _needsRelease;
 
-        /// <summary>0..1 beam charge, for HUD/telegraphs.</summary>
+        /// <summary>True while the high beam is being held and can build stun charge.</summary>
+        public bool IsHighBeamActive { get; private set; }
+
+        /// <summary>True while the high beam is recharging after a stun.</summary>
+        public bool IsDischarging => _cd > 0f;
+
+        /// <summary>1 just after firing, 0 when the high beam is ready again. For HUD.</summary>
+        public float Cooldown01 => Mathf.Clamp01(_cd / Mathf.Max(0.05f, cooldown));
+
+        /// <summary>0..1 high-beam charge, for HUD/telegraphs.</summary>
         public float Charge01 => Mathf.Clamp01(_charge / Mathf.Max(0.05f, chargeTime));
 
         private void Awake()
@@ -54,17 +67,27 @@ namespace Sokophobia.Enemy
 
         private void Update()
         {
-            _cd -= Time.deltaTime;
-            if (_sokobot == null || !_sokobot.isActiveAndEnabled || _cam == null) return;
-            
-            // If we have no battery, we cannot stun
-            if (_battery != null && _battery.CurrentCharge <= 0f)
+            _cd = Mathf.Max(0f, _cd - Time.deltaTime);
+
+            bool held = HighBeamHeld();
+
+            // After a stun the player must release the button once the discharge
+            // finishes. Holding through the cooldown must not auto-fire again.
+            if (!held && _cd <= 0f)
+                _needsRelease = false;
+
+            IsHighBeamActive = held
+                && !_needsRelease
+                && _cd <= 0f
+                && CanAffordHighBeam();
+
+            if (!IsHighBeamActive)
             {
                 _charge = 0f;
-                return; 
+                return;
             }
 
-            if (_cd > 0f) { _charge = 0f; return; }
+            if (_sokobot == null || !_sokobot.isActiveAndEnabled || _cam == null) return;
 
             if (!BeamOnTarget())
             {
@@ -73,23 +96,40 @@ namespace Sokophobia.Enemy
             }
 
             _charge += Time.deltaTime;
-            
+
             if (_charge >= chargeTime)
             {
-                // Try to consume battery before firing
                 if (_battery != null && !_battery.TryConsume(batteryCost))
                 {
-                    // Not enough battery! Reset charge and let the player know.
                     _charge = 0f;
-                    _cd = cooldown;
-                    Debug.Log("Not enough battery to stun!");
+                    IsHighBeamActive = false;
                     return;
                 }
 
                 _charge = 0f;
                 _cd = cooldown;
+                _needsRelease = true;
+                IsHighBeamActive = false;
                 _sokobot.Stun(stunDuration);
             }
+        }
+
+        private void OnDisable()
+        {
+            IsHighBeamActive = false;
+            _charge = 0f;
+        }
+
+        private bool HighBeamHeld()
+        {
+            if (Time.timeScale <= 0f) return false;
+            if (Cursor.lockState != CursorLockMode.Locked) return false;
+            return Mouse.current != null && Mouse.current.leftButton.isPressed;
+        }
+
+        private bool CanAffordHighBeam()
+        {
+            return _battery == null || _battery.CurrentCharge >= batteryCost;
         }
 
         private bool BeamOnTarget()
