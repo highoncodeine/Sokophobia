@@ -49,8 +49,6 @@ namespace Sokophobia.Grid
             else
             {
                 transform.position = WorldPosOf(Coord);
-                // Plate accounting belongs to PuzzleManager (grid-event bridge),
-                // not here: every box would otherwise report "placed" at spawn.
             }
 
             SetupObstacle();
@@ -67,7 +65,6 @@ namespace Sokophobia.Grid
         {
             Coord = target;
 
-            // Enable-on-settle: don't carve a sweeping hole mid-slide.
             if (obstacle != null) obstacle.enabled = false;
 
             if (moveRoutine != null) StopCoroutine(moveRoutine);
@@ -105,10 +102,6 @@ namespace Sokophobia.Grid
             if (obstacle != null) obstacle.enabled = true;
         }
 
-        /// <summary>
-        /// Audible thud for the push/pull the AI just heard about.
-        /// Uses the assigned clip, else a generated 0.15s low thud (no assets needed).
-        /// </summary>
         private void PlayThud()
         {
             if (audio == null)
@@ -146,17 +139,13 @@ namespace Sokophobia.Grid
             cachedThud.SetData(data, 0);
             return cachedThud;
         }
-        /// <summary>
-        /// NavMeshObstacle with carving, enabled only at rest (enable-on-settle).
-        /// Added at runtime so the Crate prefab needs no YAML surgery.
-        /// </summary>
         private void SetupObstacle()
         {
             if (!TryGetComponent(out obstacle))
             {
                 obstacle = gameObject.AddComponent<NavMeshObstacle>();
                 obstacle.carving = true;
-                obstacle.carveOnlyStationary = false; // we toggle enabled manually
+                obstacle.carveOnlyStationary = false;
                 if (TryGetComponent<BoxCollider>(out var col))
                 {
                     obstacle.center = col.center;

@@ -6,7 +6,6 @@ public static class AlwaysStartMainMenu
 {
     static AlwaysStartMainMenu()
     {
-        // Wait until the editor has finished importing assets after compilation.
         EditorApplication.delayCall += SetStartScene;
     }
 

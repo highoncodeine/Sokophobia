@@ -3,12 +3,6 @@ using Sokophobia.Enemy;
 
 namespace Sokophobia.Interaction
 {
-    /// <summary>
-    /// Drives the visible flashlight lights from battery charge, high-beam state,
-    /// high-beam discharge, and the stun flash. At full charge the lights keep
-    /// their authored intensity; as the battery drains they dim, and at zero
-    /// charge they switch off entirely.
-    /// </summary>
     [RequireComponent(typeof(FlashlightBattery))]
     public class FlashlightLightController : MonoBehaviour
     {
@@ -142,9 +136,6 @@ namespace Sokophobia.Interaction
                 fillScale *= dischargeIntensityMultiplier * flicker;
             }
 
-            // A successful stun lands as the stunner switches into discharge.
-            // Flash above the high-beam level, then blend down into the
-            // discharge flicker so the shot reads as one hard pulse.
             if (_stunFlashTimer > 0f && stunFlashDuration > 0.0001f)
             {
                 float flash01 = Mathf.Clamp01(_stunFlashTimer / stunFlashDuration);

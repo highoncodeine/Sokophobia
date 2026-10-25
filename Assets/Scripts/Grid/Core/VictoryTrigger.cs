@@ -29,9 +29,6 @@ namespace Sokophobia.Grid
             if (_activated || !_trigger.enabled || Time.timeScale <= 0f)
                 return;
 
-            // GridPlayerController moves its Transform directly rather than calling
-            // CharacterController.Move, so also query overlaps instead of relying
-            // solely on physics trigger callbacks. This also handles spawn-inside.
             Vector3 scale = transform.lossyScale;
             Vector3 halfSize = Vector3.Scale(_trigger.size * 0.5f,
                 new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z)));
@@ -39,7 +36,6 @@ namespace Sokophobia.Grid
             int count = Physics.OverlapBoxNonAlloc(center, halfSize, _overlaps,
                 transform.rotation, ~0, QueryTriggerInteraction.Collide);
 
-            // Avoid missing the player in an unusually crowded trigger volume.
             Collider[] overlaps = count == _overlaps.Length
                 ? Physics.OverlapBox(center, halfSize, transform.rotation, ~0, QueryTriggerInteraction.Collide)
                 : _overlaps;

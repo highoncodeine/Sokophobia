@@ -1,15 +1,9 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Sokophobia.Interaction; // Added for FlashlightBattery
+using Sokophobia.Interaction;
 
 namespace Sokophobia.Enemy
 {
-    /// <summary>
-    /// High-beam stun trigger: while the player holds LMB, checks cone + LOS
-    /// from the player camera to Sokobot, builds charge, then calls
-    /// ISokobotStunnable.Stun and starts the high-beam discharge cooldown.
-    /// Attach near the player (uses Camera.main by default).
-    /// </summary>
     public class FlashlightStunner : MonoBehaviour
     {
         [Header("Beam")]
@@ -31,23 +25,19 @@ namespace Sokophobia.Enemy
         private Transform _cam;
         private SokobotController _sokobot;
         private Collider _sokobotCollider;
-        private FlashlightBattery _battery; // Added
+        private FlashlightBattery _battery;
         
         private float _cd;
         private float _charge;
         private bool _needsRelease;
         private bool _wasHighBeamActive;
 
-        /// <summary>True while the high beam is being held and can build stun charge.</summary>
         public bool IsHighBeamActive { get; private set; }
 
-        /// <summary>True while the high beam is recharging after a stun.</summary>
         public bool IsDischarging => _cd > 0f;
 
-        /// <summary>1 just after firing, 0 when the high beam is ready again. For HUD.</summary>
         public float Cooldown01 => Mathf.Clamp01(_cd / Mathf.Max(0.05f, cooldown));
 
-        /// <summary>0..1 high-beam charge, for HUD/telegraphs.</summary>
         public float Charge01 => Mathf.Clamp01(_charge / Mathf.Max(0.05f, chargeTime));
 
         [SerializeField] private AudioSource flashlightSfx;
@@ -57,13 +47,11 @@ namespace Sokophobia.Enemy
             var cam = Camera.main;
             _cam = cam != null ? cam.transform : transform;
             
-            // Get the battery component
             _battery = GetComponent<FlashlightBattery>();
         }
 
         private void Start()
         {
-            // Cache the enemy even while dormant; EnemySpawner activates it later.
             _sokobot = FindAnyObjectByType<SokobotController>(FindObjectsInactive.Include);
             _sokobotCollider = _sokobot != null ? _sokobot.GetComponentInChildren<Collider>(true) : null;
         }
@@ -74,8 +62,6 @@ namespace Sokophobia.Enemy
 
             bool held = HighBeamHeld();
 
-            // After a stun the player must release the button once the discharge
-            // finishes. Holding through the cooldown must not auto-fire again.
             if (!held && _cd <= 0f)
                 _needsRelease = false;
 
@@ -157,10 +143,9 @@ namespace Sokophobia.Enemy
             Vector3 toBot = aim - _cam.position;
             float dist = toBot.magnitude;
             if (dist > range) return false;
-            if (dist < 0.05f) return true; // point-blank: the camera is inside the body
+            if (dist < 0.05f) return true;
             if (Vector3.Angle(_cam.forward, toBot.normalized) > angle * 0.5f) return false;
 
-            // Only solid geometry blocks the beam; trigger volumes do not.
             if (Physics.Raycast(_cam.position, toBot.normalized, out var hit, dist + 0.01f, blockers, QueryTriggerInteraction.Ignore))
             {
                 if (hit.transform != _sokobot.transform && !hit.transform.IsChildOf(_sokobot.transform))
@@ -169,9 +154,6 @@ namespace Sokophobia.Enemy
             return true;
         }
 
-        /// <summary>
-        /// Aim at the nearest point of the Sokobot's collider hull.
-        /// </summary>
         private Vector3 GetAimPoint()
         {
             if (_sokobotCollider != null && _sokobotCollider.enabled && _sokobotCollider.gameObject.activeInHierarchy)

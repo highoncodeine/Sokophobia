@@ -4,11 +4,6 @@ using UnityEngine;
 
 namespace Sokophobia.Grid
 {
-    /// <summary>
-    /// Owns plate totals + box-on-plate progress. Plates stay non-occupants.
-    /// Bridges GridManager occupancy events to GameEvents plate events,
-    /// reviving OnBoxPlaced / OnBoxRemovedFromPlate for AI (Sokobot) and HUD.
-    /// </summary>
     [DefaultExecutionOrder(-90)]
     public class PuzzleManager : MonoBehaviour
     {
@@ -103,7 +98,6 @@ namespace Sokophobia.Grid
         public void RegisterPlate(Plate plate)
         {
             _plates[plate.Coord] = plate;
-            // Initial scan: a box may already occupy this cell (registration order).
             if (_grid != null && _grid.GetOccupant(plate.Coord) is Box box && _satisfied.Add(plate.Coord))
             {
                 GameEvents.RaiseBoxPlaced(box, plate.Coord);
@@ -122,7 +116,6 @@ namespace Sokophobia.Grid
         {
             if (!_plates.ContainsKey(c) || _grid == null) return;
 
-            // Post-move state: whoever now occupies the plate cell.
             var box = _grid.GetOccupant(c) as Box;
             if (box != null && _satisfied.Add(c))
             {
@@ -137,7 +130,6 @@ namespace Sokophobia.Grid
         {
             if (!_plates.ContainsKey(c)) return;
 
-            // The removed occupant is passed through so subscribers get the real box.
             if (_satisfied.Remove(c))
             {
                 GameEvents.RaiseBoxRemovedFromPlate(o as Box, c);

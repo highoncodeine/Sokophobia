@@ -4,12 +4,6 @@ using Sokophobia.Grid;
 
 namespace Sokophobia.Enemy
 {
-    /// <summary>
-    /// Holds Sokobot dormant until the first crate is placed on a pressure plate,
-    /// then spawns (activates) it at its authored scene position.
-    /// Progress comes from PuzzleManager, so moving a crate off the plate later
-    /// does not respawn the enemy: only the first placement matters.
-    /// </summary>
     [DefaultExecutionOrder(-80)]
     [DisallowMultipleComponent]
     [AddComponentMenu("Sokophobia/Enemy/Enemy Spawner")]
@@ -51,7 +45,6 @@ namespace Sokophobia.Enemy
             _spawnPosition = enemy.transform.position;
             _spawnRotation = enemy.transform.rotation;
 
-            // Ensure the enemy does not run its AI or show its body before the cue.
             enemy.SetActive(false);
         }
 
@@ -70,7 +63,6 @@ namespace Sokophobia.Enemy
 
             _puzzle.OnProgressChanged += HandleProgress;
 
-            // Covers scenes that already start with a crate on a plate.
             if (_puzzle.PlacedCount > 0)
                 HandleProgress(_puzzle.PlacedCount, _puzzle.TotalPlates);
         }
@@ -116,8 +108,6 @@ namespace Sokophobia.Enemy
             _spawned = true;
             Unsubscribe();
 
-            // Snap to the authored spawn point even if something nudged the
-            // dormant transform while it was inactive.
             enemy.transform.SetPositionAndRotation(_spawnPosition, _spawnRotation);
             enemy.SetActive(true);
         }

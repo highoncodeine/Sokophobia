@@ -5,13 +5,6 @@ using Sokophobia.Grid;
 
 namespace Sokophobia.Enemy
 {
-    /// <summary>
-    /// Sokobot encounter AI. FSM: Inactive -> Patrol/Investigate -> Chase -> Stunned.
-    /// Decide (this FSM) outputs intent; NavMeshAgent executes motion.
-    /// Noise (BoxPush/BoxPull) drives Investigate; vision + proximity drive Chase.
-    /// Speed scales with the plates still unsolved: slowest at the start, and every
-    /// crate locked onto a plate makes it faster. Stun via ISokobotStunnable.
-    /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
     public class SokobotController : MonoBehaviour, ISokobotStunnable
     {
@@ -90,25 +83,23 @@ namespace Sokophobia.Enemy
         private int _wpIndex;
         private Vector3 _spawnPos;
 
-        // Blackboard (game-ai: decision layer reads this, motion layer acts on it).
         private Vector3 _lastKnown;
         private bool _hasLastKnown;
         private float _suspicion;
-        private bool _seen; // cached sense result, refreshed on senseInterval
+        private bool _seen;
         private float _senseTimer;
         private readonly List<Vector3> _searchPoints = new();
         private int _searchIndex;
         private float _repathTimer;
         private float _loseSightTimer;
         private float _tagCooldownTimer;
-        private float _catchTimer; // wind-up progress
+        private float _catchTimer;
         private Vector3 _prevPlayerPos;
         private bool _havePrevPlayerPos;
         private Vector3 _playerVel;
         private int _stunCount;
         private float _lastStunTime = -999f;
 
-        // Noise dedup: keep loudest within window, not first.
         private bool _noisePending;
         private float _noiseTimer;
         private NoiseEvent _loudestNoise;
@@ -120,7 +111,6 @@ namespace Sokophobia.Enemy
 
         public StateId CurrentState => _state;
 
-        // ---------- Lifecycle (unity-csharp-scripting: Awake cache, OnEnable subscribe) ----------
         private void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
@@ -143,9 +133,6 @@ namespace Sokophobia.Enemy
             _puzzle = FindAnyObjectByType<PuzzleManager>();
             if (_puzzle != null) _puzzle.OnPuzzleSolved += RefreshSpeedForCurrentState;
 
-            // Soft check: warn (not error) so Pause-on-Error never freezes Play entry.
-            // The agent registers with the mesh on enable; SokobotController.Start can
-            // run before that, so a hard error here is a false negative.
             if (!NavMesh.SamplePosition(transform.position, out var hit, 5f, NavMesh.AllAreas))
                 Debug.LogWarning("[Sokobot] Spawn off baked NavMesh (will self-correct if agent registers).");
             else
@@ -170,8 +157,6 @@ namespace Sokophobia.Enemy
             if (_puzzle != null) _puzzle.OnPuzzleSolved -= RefreshSpeedForCurrentState;
         }
 
-        // ---------- Per-frame driver ----------
-        // game-ai: senses refresh on a timer into the blackboard; states only read it.
         private void Update()
         {
             float dt = Time.deltaTime;
@@ -231,7 +216,6 @@ namespace Sokophobia.Enemy
             }
         }
 
-        // ---------- States ----------
         private void Enter(StateId next)
         {
             _state = next;
@@ -278,13 +262,11 @@ namespace Sokophobia.Enemy
 
         private void TickPatrol(float dt)
         {
-            // Proximity always wins; vision needs a full suspicion meter.
             if (_seen && (_suspicion >= chaseThreshold || IsPlayerClose())) { Enter(StateId.Chase); return; }
             if (_suspicion >= investigateThreshold && _hasLastKnown) { Enter(StateId.Investigate); return; }
 
             if (HasArrived())
                 GoToNextWaypoint();
-            // Noise interrupts arrive via PumpNoiseDedup, which enters Investigate directly.
         }
 
         private void TickInvestigate(float dt)
@@ -299,7 +281,6 @@ namespace Sokophobia.Enemy
                 return;
             }
 
-            // game-ai: walk the search pattern instead of idling at one point.
             if (HasArrived())
                 GoToNextSearchPoint();
         }
@@ -318,8 +299,6 @@ namespace Sokophobia.Enemy
                 SetDestinationSafe(PredictIntercept());
             }
 
-            // Telegraphed catch: must hold range + line-of-sight through the wind-up.
-            // Gives the player a dodge window instead of an instant tag through walls.
             float dist = Vector3.Distance(transform.position, _player.position);
             if (dist <= catchDistance + 0.3f && _tagCooldownTimer <= 0f && HasLineOfSight())
             {
@@ -358,24 +337,20 @@ namespace Sokophobia.Enemy
 
         private void TickStunned()
         {
-            // Timer is driven by _stunRemaining (see Stun). Exit handled there via state time.
             if (_stateTime >= _stunRemaining)
             {
-                // One-step de-escalation: never resume full Chase unless visible right now.
                 if (_seen && _suspicion >= chaseThreshold) { Enter(StateId.Chase); }
                 else if (_hasLastKnown) { Enter(StateId.Investigate); }
                 else { Enter(StateId.Patrol); }
             }
         }
 
-        // ---------- Stun (callable from any state) ----------
         private float _stunRemaining;
 
         public void Stun(float durationSeconds)
         {
             stunSfx.Play();
             if (durationSeconds <= 0f) return;
-            // Diminishing returns: chained stuns within the window lose potency.
             float sinceLast = Time.time - _lastStunTime;
             if (sinceLast < stunDiminishWindow) _stunCount++;
             else _stunCount = 0;
@@ -384,7 +359,6 @@ namespace Sokophobia.Enemy
 
             if (_state != StateId.Stunned)
             {
-                // Keep lastKnown if we had eyes on the player.
                 if ((_state == StateId.Chase || _suspicion >= investigateThreshold) && _player != null)
                 {
                     _lastKnown = _player.position;
@@ -396,18 +370,16 @@ namespace Sokophobia.Enemy
             }
             else
             {
-                // Extend, don't stack.
                 _stunRemaining = Mathf.Max(_stunRemaining, _stateTime + effective);
             }
         }
 
-        // ---------- Noise (dedup: keep loudest in window) ----------
         private void HandleNoise(NoiseEvent e)
         {
             if (e.Source != NoiseSource.BoxPush && e.Source != NoiseSource.BoxPull)
                 return;
 
-            float reach = e.Radius * e.Intensity; // unclamped: pull 15*1.2=18m > push 12m
+            float reach = e.Radius * e.Intensity;
             if (!_noisePending || reach > _loudestReach)
             {
                 _loudestNoise = e;
@@ -438,7 +410,6 @@ namespace Sokophobia.Enemy
             }
         }
 
-        // ---------- Senses ----------
         private bool IsPlayerClose()
         {
             if (_player == null) return false;
@@ -471,7 +442,6 @@ namespace Sokophobia.Enemy
             toPlayer.y = 0f;
             float dist = toPlayer.magnitude;
 
-            // Proximity: hears breathing, no LOS needed.
             if (dist <= proximityRadius) return true;
 
             if (dist > visionRange) return false;
@@ -484,7 +454,6 @@ namespace Sokophobia.Enemy
             return HasLineOfSight();
         }
 
-        // ---------- Intent helpers (game-ai: decision outputs a target position) ----------
         private Vector3 PredictIntercept()
         {
             if (_player == null) return _lastKnown;
@@ -535,12 +504,10 @@ namespace Sokophobia.Enemy
                 transform.rotation, Quaternion.LookRotation(d.normalized), 1f - Mathf.Exp(-10f * Time.deltaTime));
         }
 
-        // ---------- Motion helpers (unity-navmesh patterns) ----------
         private void SetDestinationSafe(Vector3 dest)
         {
             if (!NavMesh.SamplePosition(dest, out var hit, 2f, NavMesh.AllAreas))
                 return;
-            // Don't commit to unreachable targets.
             var path = new NavMeshPath();
             if (_agent.CalculatePath(hit.position, path) && path.status == NavMeshPathStatus.PathComplete)
                 _agent.SetDestination(hit.position);
@@ -562,7 +529,6 @@ namespace Sokophobia.Enemy
             }
             else
             {
-                // Random fallback: reachable point within radius, never broken.
                 dest = _spawnPos;
                 for (int i = 0; i < 8; i++)
                 {
@@ -579,7 +545,6 @@ namespace Sokophobia.Enemy
             SetDestinationSafe(dest);
         }
 
-        // ---------- Difficulty ----------
         private void HandlePlateProgress(Box box, GridCoord cell) => RefreshSpeedForCurrentState();
 
         private void RefreshSpeedForCurrentState() => ApplySpeed(baseSpeedFor(_state));
@@ -591,11 +556,6 @@ namespace Sokophobia.Enemy
             _ => patrolSpeed,
         };
 
-        /// <summary>
-        /// Speed scaler driven by plates still unsolved: all remaining = slowest,
-        /// none remaining = fastest. Re-read on every plate change, so pulling a
-        /// crate back off a plate slows the bot down again.
-        /// </summary>
         private float plateMultiplier()
         {
             if (_puzzle != null && _puzzle.TotalPlates > 0)
@@ -626,7 +586,6 @@ namespace Sokophobia.Enemy
                     Gizmos.DrawWireSphere(w, 0.3f);
 
 #if UNITY_EDITOR
-            // game-ai verify-by-observation: vision cone, lastKnown, search, live path.
             Vector3 fwd = transform.forward;
             fwd.y = 0f;
             if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;

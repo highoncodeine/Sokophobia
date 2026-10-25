@@ -118,7 +118,6 @@ namespace Sokophobia.UI
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.5f;
 
-            // The image and button regions scale together at any Game view size.
             GameObject artwork = new GameObject("GameOverArtwork", typeof(RectTransform),
                 typeof(CanvasRenderer), typeof(RawImage));
             RectTransform rect = artwork.GetComponent<RectTransform>();

@@ -2,9 +2,6 @@ using System;
 
 namespace Sokophobia.Grid
 {
-    /// <summary>
-    /// Integer coordinate on the grid. Immutable value type.
-    /// </summary>
     [Serializable]
     public struct GridCoord : IEquatable<GridCoord>
     {

@@ -39,7 +39,6 @@ namespace Sokophobia.Grid
             if (TryGetComponent<DoorOpeningPopup>(out var popup))
                 popup.Dismiss();
 
-            // Reuse the end screen's restart path so it also restores its audio state.
             if (TryGetComponent<VictoryScreenController>(out var victory) && victory.IsVisible)
             {
                 victory.PlayAgain();
@@ -52,7 +51,6 @@ namespace Sokophobia.Grid
                 return;
             }
 
-            // Update still receives keyboard input when the pause menu has frozen time.
             Time.timeScale = 1f;
             AudioListener.pause = false;
             SceneManager.LoadScene(level.buildIndex);

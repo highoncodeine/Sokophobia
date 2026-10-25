@@ -3,11 +3,6 @@ using Sokophobia.Grid;
 
 namespace Sokophobia.Grid
 {
-    /// <summary>
-    /// Pressure-plate marker. Registers its cell with PuzzleManager; never an occupant,
-    /// so boxes can still be pushed onto this cell (one occupant per cell rule).
-    /// Enforces trigger collider at runtime so the prefab stays untouched.
-    /// </summary>
     [RequireComponent(typeof(BoxCollider))]
     public class Plate : MonoBehaviour
     {

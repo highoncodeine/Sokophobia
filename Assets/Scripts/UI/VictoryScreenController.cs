@@ -34,7 +34,6 @@ namespace Sokophobia.UI
             _levelScene = gameObject.scene.name;
         }
 
-        // Returns false when another end screen or pause already owns the game.
         public bool ShowVictory()
         {
             if (!isActiveAndEnabled || IsVisible || _health.IsDead || Time.timeScale <= 0f)

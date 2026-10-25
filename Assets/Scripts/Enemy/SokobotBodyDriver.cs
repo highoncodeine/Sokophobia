@@ -6,17 +6,6 @@ using UnityEngine.Playables;
 
 namespace Sokophobia.Enemy
 {
-    /// <summary>
-    /// Plays the Sokobot's body model from the AI blackboard (SokobotController
-    /// state + NavMeshAgent velocity). Harvests the locomotion clips from the
-    /// model's own Animator controller, detaches that controller, and crossfades
-    /// a Playables mixer. Robot preset: StaticIdle/Walk/Run/CombatIdle plus a
-    /// GetHit reaction while stunned. Add to the Sokobot root next to
-    /// SokobotController; the animated model must be a child (the low-poly robot
-    /// lives under "RobotBody").
-    /// Follows game-ai: decision (SokobotController) stays separate from
-    /// motion/appearance (here + NavMeshAgent).
-    /// </summary>
     [RequireComponent(typeof(SokobotController))]
     [RequireComponent(typeof(NavMeshAgent))]
     public class SokobotBodyDriver : MonoBehaviour
@@ -30,16 +19,13 @@ namespace Sokophobia.Enemy
         [Tooltip("Fallback Run speed in m/s when the clip has no root-motion speed.")]
         [SerializeField] private float runReferenceSpeed = 2.6f;
 
-        // Mixer slots -> candidate clip names, first match wins. The low-poly
-        // robot ships StaticIdle/CombatIdle/Walk/Run/GetHit; models that only
-        // provide Idle/Walk/Run still work (missing slots reuse the idle clip).
         private static readonly string[][] ClipCandidates =
         {
-            new[] { "StaticIdle", "Idle" }, // slot 0: neutral idle
-            new[] { "Walk" },               // slot 1: patrol/investigate travel
-            new[] { "Run" },                // slot 2: chase travel
-            new[] { "CombatIdle", "Idle" }, // slot 3: alert but stationary
-            new[] { "GetHit" },             // slot 4: stun reaction (one-shot)
+            new[] { "StaticIdle", "Idle" },
+            new[] { "Walk" },
+            new[] { "Run" },
+            new[] { "CombatIdle", "Idle" },
+            new[] { "GetHit" },
         };
 
         public const int SlotIdle = 0;
@@ -75,7 +61,6 @@ namespace Sokophobia.Enemy
                 return;
             }
 
-            // Silence the stock model's ambient loop; the dread director owns audio.
             foreach (var audio in GetComponentsInChildren<AudioSource>())
                 Destroy(audio);
 
@@ -131,11 +116,6 @@ namespace Sokophobia.Enemy
             _walkMotionSpeed = GetMotionSpeed(byName, "Walk", walkReferenceSpeed);
             _runMotionSpeed = GetMotionSpeed(byName, "Run", runReferenceSpeed);
 
-            // The Playables output takes over Animator evaluation as soon as
-            // the graph plays; the stock controller stops driving the pose.
-            // IMPORTANT: never assign runtimeAnimatorController on an Animator
-            // driven by Playables - any change to it rebinds the Animator and
-            // silently destroys the custom PlayableGraph (verified in-editor).
             _anim.applyRootMotion = false;
             _anim.cullingMode = AnimatorCullingMode.AlwaysAnimate;
 
@@ -148,8 +128,6 @@ namespace Sokophobia.Enemy
             for (int i = 0; i < SlotCount; i++)
             {
                 var p = AnimationClipPlayable.Create(_graph, resolved[i]);
-                // NOTE: foot IK stays OFF (Playables foot-IK + scaled avatar root
-                // slammed the whole body ~2.6m underground). Keep planted via stride sync.
                 p.SetApplyFootIK(false);
                 _playables[i] = p;
                 _graph.Connect(p, 0, _mixer, i);
@@ -212,8 +190,6 @@ namespace Sokophobia.Enemy
                 target = SlotStun;
                 if (!_stunPlayed)
                 {
-                    // Replay the one-shot reaction; it clamps on its last pose
-                    // if the stun outlives the clip.
                     _playables[SlotStun].SetTime(0);
                     _playables[SlotStun].SetSpeed(1);
                     _stunPlayed = true;
@@ -243,8 +219,6 @@ namespace Sokophobia.Enemy
                 if (i != target && w < 0.01f) w = 0f;
                 _mixer.SetInputWeight(i, w);
 
-                // Keep locomotion clips in stride with the agent while they
-                // crossfade, using the clip's root-motion speed when authored.
                 if (i == SlotWalk || i == SlotRun)
                 {
                     float refSpeed = i == SlotWalk ? _walkMotionSpeed : _runMotionSpeed;
@@ -257,7 +231,6 @@ namespace Sokophobia.Enemy
             }
         }
 
-        /// <summary>Mixer slot weight (SlotIdle..SlotStun), for HUD/debug tools.</summary>
         public float DebugWeight(int slot) =>
             _graph.IsValid() && slot >= 0 && slot < SlotCount ? _mixer.GetInputWeight(slot) : 0f;
     }

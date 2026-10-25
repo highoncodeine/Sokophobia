@@ -49,8 +49,6 @@ namespace Sokophobia.Grid
 
             if (IsDead)
             {
-                // Stop an in-progress step too; disabling a component alone
-                // would leave its movement coroutine running.
                 if (TryGetComponent<GridPlayerController>(out var movement))
                 {
                     movement.StopAllCoroutines();

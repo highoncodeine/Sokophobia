@@ -37,7 +37,6 @@ public class PauseController : MonoBehaviour
     {
         isPopupVisible = visible;
 
-        // Unlock cursor while popup is visible, lock it when closed
         Cursor.lockState = visible ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = visible;
     }
@@ -49,7 +48,6 @@ public class PauseController : MonoBehaviour
         if (pauseMenu != null)
             pauseMenu.SetActive(false);
             
-        // Ensure cursor is unlocked on death/win screens
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -92,7 +90,6 @@ public class PauseController : MonoBehaviour
         hitboxObject.transform.SetParent(pauseMenu.transform, false);
 
         RectTransform hitboxRect = hitboxObject.GetComponent<RectTransform>();
-        // Match the same normalized anchors used by victory and game over.
         hitboxRect.anchorMin = new Vector2(region.xMin, 1f - region.yMax);
         hitboxRect.anchorMax = new Vector2(region.xMax, 1f - region.yMin);
         hitboxRect.offsetMin = Vector2.zero;
@@ -143,7 +140,6 @@ public class PauseController : MonoBehaviour
             EventSystem.current.SetSelectedGameObject(resumeButton.gameObject);
         }
 
-        // LOCK/UNLOCK CURSOR
         Cursor.lockState = paused ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = paused;
     }

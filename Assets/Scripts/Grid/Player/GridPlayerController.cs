@@ -4,10 +4,6 @@ using UnityEngine.InputSystem;
 
 namespace Sokophobia.Grid
 {
-    /// <summary>
-    /// First-person grid-aligned player controller.
-    /// Free mouse look (FPS style), but moves exactly one cell at a time.
-    /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class GridPlayerController : MonoBehaviour, IGridOccupant
     {
@@ -29,18 +25,15 @@ namespace Sokophobia.Grid
 
         [SerializeField] private AudioSource runSfx;
 
-        // ---------- IGridOccupant ----------
         public GridCoord Coord { get; private set; }
         public OccupantType Type => OccupantType.Player;
         public Transform Transform => transform;
 
-        // ---------- State ----------
-        private float yaw = 0f;          // Free-look horizontal angle
-        private float pitch = 0f;        // Free-look vertical angle
-        private int facingIndex = 0;     // Derived nearest cardinal (0=+Z, 1=+X, 2=-Z, 3=-X)
+        private float yaw = 0f;
+        private float pitch = 0f;
+        private int facingIndex = 0;
         private bool isBusy = false;
 
-        /// <summary>Smoothed world-space velocity for enemy intercept prediction.</summary>
         public Vector3 Velocity { get; private set; }
         private Vector3 _prevPos;
 
@@ -49,10 +42,10 @@ namespace Sokophobia.Grid
 
         private static readonly GridCoord[] Directions =
         {
-            new GridCoord(0, 1),   // +Z
-            new GridCoord(1, 0),   // +X
-            new GridCoord(0, -1),  // -Z
-            new GridCoord(-1, 0)   // -X
+            new GridCoord(0, 1),
+            new GridCoord(1, 0),
+            new GridCoord(0, -1),
+            new GridCoord(-1, 0)
         };
 
         private void Awake()
@@ -85,7 +78,6 @@ namespace Sokophobia.Grid
             
             _prevPos = transform.position;
 
-            // Lock cursor for FPS mouse look
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
@@ -119,7 +111,6 @@ namespace Sokophobia.Grid
             bool down = kb.sKey.isPressed || kb.downArrowKey.isPressed;
             bool shiftHeld = kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed;
 
-            // ---- Pull (hold Shift + S/Down): box in front moves into our old cell ----
             if (shiftHeld && down)
             {
                 if (puller != null)
@@ -137,14 +128,13 @@ namespace Sokophobia.Grid
                 return;
             }
 
-            // ---- Movement & Strafing ----
             float forwardInput = (up ? 1f : 0f) + (down ? -1f : 0f);
             float strafeInput = (right ? 1f : 0f) + (left ? -1f : 0f);
 
             GridCoord dir = default;
             bool hasInput = false;
 
-            facingIndex = GetNearestCardinalIndex(); // Update facing based on mouse aim
+            facingIndex = GetNearestCardinalIndex();
 
             if (Mathf.Abs(forwardInput) > 0.5f)
             {
@@ -166,7 +156,6 @@ namespace Sokophobia.Grid
             }
         }
 
-        // ---------- Mouse Look ----------
         private void HandleMouseLook()
         {
             if (Mouse.current == null) return;
@@ -176,7 +165,6 @@ namespace Sokophobia.Grid
             
             yaw += delta.x * mouseSensitivity;
             
-            // Invert Y logic based on FPS standards
             pitch += (invertY ? delta.y : -delta.y) * mouseSensitivity;
             pitch = Mathf.Clamp(pitch, pitchMin, pitchMax);
 
@@ -185,17 +173,12 @@ namespace Sokophobia.Grid
 
         private void ApplyLook()
         {
-            // Yaw rotates the whole player body
             transform.localRotation = Quaternion.Euler(0f, yaw, 0f);
 
-            // Pitch only rotates the camera pivot
             if (cameraPivot != null)
                 cameraPivot.localRotation = Quaternion.Euler(pitch, 0f, 0f);
         }
 
-        /// <summary>
-        /// Convert free yaw into nearest 90° cardinal (0=+Z, 1=+X, 2=-Z, 3=-X).
-        /// </summary>
         private int GetNearestCardinalIndex()
         {
             float normalizedYaw = yaw % 360f;
@@ -204,7 +187,6 @@ namespace Sokophobia.Grid
             return Mathf.RoundToInt(normalizedYaw / 90f) % 4;
         }
 
-        // ---------- Movement ----------
         private void TryStep(GridCoord dir)
         {
             GridCoord target = Coord + dir;
@@ -219,7 +201,6 @@ namespace Sokophobia.Grid
             {
                 var occ = gridManager.GetOccupant(target);
 
-                // --- Push attempt ---
                 if (occ != null && occ.Type == OccupantType.Box)
                 {
                     if (pusher != null && pusher.TryPush(target, dir))
@@ -244,10 +225,9 @@ namespace Sokophobia.Grid
         {
             isBusy = true;
 
-            // 1. Play the audio if it's not already playing
             if (runSfx != null && !runSfx.isPlaying)
             {
-                runSfx.Play(); // Resumes from where it was paused
+                runSfx.Play();
             }
 
             if (!gridManager.TryMove(Coord, target))
@@ -255,7 +235,6 @@ namespace Sokophobia.Grid
                 Debug.LogWarning($"[GridPlayerController] TryMove failed: {Coord} -> {target}");
                 isBusy = false;
                 
-                // Stop audio if the move failed and we are completely stuck
                 if (runSfx != null && runSfx.isPlaying)
                     runSfx.Pause();
                     
@@ -276,13 +255,10 @@ namespace Sokophobia.Grid
             }
             transform.position = endPos;
 
-            // 2. Mark the physical movement as finished
             isBusy = false;
 
-            // 3. Wait exactly one frame to check if they are still holding the key
             yield return null;
 
-            // 4. If we are STILL not busy after that frame, the player actually stopped
             if (!isBusy && runSfx != null && runSfx.isPlaying)
             {
                 runSfx.Pause(); 

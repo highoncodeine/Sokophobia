@@ -49,14 +49,12 @@ namespace Sokophobia.UI
         {
             if (IsVisible)
             {
-                // Scaled deltaTime is zero while this popup is freezing the game.
                 _remainingTime -= Time.unscaledDeltaTime;
                 if (_remainingTime <= 0f)
                     Dismiss();
             }
             else if (_pending && !_levelEnded && Time.timeScale > 0f)
             {
-                // Wait until an existing pause menu is resumed before taking over.
                 ShowPopup();
                 
             }
@@ -93,7 +91,6 @@ namespace Sokophobia.UI
         {
             _levelEnded = true;
             _pending = false;
-            // A victory/game-over screen now owns the freeze; don't resume it.
             HidePopup(false);
         }
 

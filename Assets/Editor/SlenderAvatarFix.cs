@@ -5,18 +5,8 @@ using UnityEngine;
 
 namespace Sokophobia.Editor
 {
-    /// <summary>
-    /// One-click fix for the NVJOB Slenderman's empty Humanoid mapping
-    /// (Slender.fbx.meta ships animationType=Humanoid with human:[]/skeleton:[]).
-    /// Builds a valid human avatar from the scene instance's bones (Blender-style
-    /// names the auto-mapper doesn't know), saves it as an asset, and points the
-    /// Sokobot Animator at it. Run once via Windoweless call:
-    ///   Sokophobia.Editor.SlenderAvatarFix.Fix()
-    /// Must run in Edit mode (not Play).
-    /// </summary>
     public static class SlenderAvatarFix
     {
-        // humanName -> boneName
         private static readonly KeyValuePair<string, string>[] Map =
         {
             new("Hips", "hips"),
@@ -50,13 +40,6 @@ namespace Sokophobia.Editor
         [MenuItem("Sokophobia/Fix Slender Avatar")]
         private static void FixFromMenu() => Fix();
 
-        /// <summary>
-        /// Rebuilds the Slender mesh bindposes from the live bone layout
-        /// (bindpose[i] = bone[i].worldToLocal * meshRoot.localToWorld).
-        /// Use when the skinned mesh renders rigidly offset from its own bones.
-        /// Writes a mesh copy (original FBX import untouched) and points the
-        /// scene renderer at it. Edit mode only.
-        /// </summary>
         [MenuItem("Sokophobia/Rebind Slender Bindposes")]
         private static void RebindFromMenu() => RebindBindposes();
 
@@ -151,8 +134,6 @@ namespace Sokophobia.Editor
                 return;
             }
 
-            // Include the Hips parent in the skeleton, but build the Avatar from
-            // above the 100x model container so Humanoid motion is not scaled again.
             Transform scaledContainer = hips.parent != null ? hips.parent : hips;
             Transform root = scaledContainer.parent != null ? scaledContainer.parent : scaledContainer;
             var bones = new List<Transform>();
@@ -211,7 +192,6 @@ namespace Sokophobia.Editor
                 return;
             }
 
-            // Replace any previous attempt so GUIDs stay stable.
             var existing = AssetDatabase.LoadAssetAtPath<Avatar>(AvatarPath);
             if (existing != null)
             {

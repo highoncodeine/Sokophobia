@@ -20,7 +20,6 @@ namespace Sokophobia.Interaction
                 battery.AddCharge(chargeAmount);
                 _collected = true;
                 sfxSource.Play();
-                // Hide the object (or you can Destroy(gameObject))
                 gameObject.SetActive(false);
                 Debug.Log($"Battery picked up! +{chargeAmount} charge.");
             }

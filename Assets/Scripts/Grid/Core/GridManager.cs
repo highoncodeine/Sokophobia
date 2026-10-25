@@ -4,9 +4,6 @@ using UnityEngine;
 
 namespace Sokophobia.Grid
 {
-    /// <summary>
-    /// Authoritative grid system. Owns cell types, occupancy, and coordinate conversion.
-    /// </summary>
     [DefaultExecutionOrder(-100)]
     public class GridManager : MonoBehaviour
     {
@@ -34,12 +31,6 @@ namespace Sokophobia.Grid
 
         private bool initialized = false;
 
-        // ---------- Lifecycle ----------
-        /// <summary>
-        /// Self-healing init. Recovers if instance state was ever lost
-        /// (flag set but cells gone): rebuilds cells, re-bakes walls, and
-        /// re-registers live occupants so pushes keep working.
-        /// </summary>
         private void EnsureInitialized()
         {
             bool dimsOk = cells != null
@@ -62,21 +53,14 @@ namespace Sokophobia.Grid
             if (!wasCorrupt)
                 return;
 
-            // Full state loss: re-derive walls from geometry ...
             var baker = GetComponent<GridBaker>();
             if (baker != null && baker.BakeOnAwake)
                 baker.Bake();
 
-            // ... and re-register occupants whose Starts already ran.
-            // Pre-Start defaults are skipped via the position match below.
             if (occupants.Count == 0)
                 RescanOccupants();
         }
 
-        /// <summary>
-        /// Re-registers live boxes/player after state loss. Skips anything whose
-        /// transform doesn't match its Coord (not yet Started, or mid-lerp far).
-        /// </summary>
         private void RescanOccupants()
         {
             var all = FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Exclude);
@@ -106,15 +90,13 @@ namespace Sokophobia.Grid
         {
             EnsureInitialized();
 
-            // Bake walls from level geometry before any occupant registers.
             var baker = GetComponent<GridBaker>();
             if (baker != null && baker.BakeOnAwake)
                 baker.Bake();
             else
-                Debug.LogWarning("[GridManager] No GridBaker on this GameObject — walls will not be auto-baked.");
+                Debug.LogWarning("[GridManager] No GridBaker on this GameObject - walls will not be auto-baked.");
         }
 
-        // ---------- Coordinate Conversion ----------
         public Vector3 GridToWorld(GridCoord c)
             => origin + new Vector3(c.x * cellSize, 0f, c.z * cellSize);
 
@@ -126,7 +108,6 @@ namespace Sokophobia.Grid
                 Mathf.RoundToInt(local.z / cellSize));
         }
 
-        // ---------- Cell Queries ----------
         public bool IsInBounds(GridCoord c)
         {
             EnsureInitialized();
@@ -152,7 +133,6 @@ namespace Sokophobia.Grid
             cells[c.x, c.z] = type;
         }
 
-        // ---------- Occupancy ----------
         public bool IsOccupied(GridCoord c) => occupants.ContainsKey(c);
 
         public IGridOccupant GetOccupant(GridCoord c)
@@ -187,12 +167,10 @@ namespace Sokophobia.Grid
             return true;
         }
 
-        // ---------- Debug ----------
         private void OnDrawGizmos()
         {
             if (!drawGizmos) return;
 
-            // Guard against calling before Awake (e.g., in edit mode)
             if (cells == null) return;
 
             for (int x = 0; x < width; x++)
@@ -220,9 +198,6 @@ namespace Sokophobia.Grid
             }
         }
 
-        /// <summary>
-        /// Editor-time utility: wipe all cells to Floor before re-baking.
-        /// </summary>
         public void ResetCellsToFloor()
         {
             EnsureInitialized();
@@ -231,9 +206,6 @@ namespace Sokophobia.Grid
                     cells[x, z] = CellType.Floor;
         }
 
-        /// <summary>
-        /// Editor-time utility: expose a public read-only view for baking.
-        /// </summary>
         public bool IsInBounds(int x, int z)
             => x >= 0 && x < width && z >= 0 && z < height;
 

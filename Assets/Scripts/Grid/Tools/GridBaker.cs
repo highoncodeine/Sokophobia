@@ -22,7 +22,6 @@ namespace Sokophobia.Grid
         [Tooltip("Automatically bake on Awake. Recommended for grid-logic blocks.")]
         [SerializeField] private bool bakeOnAwake = true;
 
-        /// <summary>Read by GridManager so the flag actually gates baking.</summary>
         public bool BakeOnAwake => bakeOnAwake;
 
         [ContextMenu("Bake Grid From Level")]

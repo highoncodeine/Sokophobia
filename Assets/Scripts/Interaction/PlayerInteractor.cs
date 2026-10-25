@@ -14,7 +14,6 @@ namespace Sokophobia.Interaction
 
         private void Awake()
         {
-            // Auto-find the camera if it wasn't assigned
             if (playerCamera == null)
             {
                 playerCamera = GetComponentInChildren<Camera>();
@@ -28,10 +27,8 @@ namespace Sokophobia.Interaction
 
             if (Time.timeScale <= 0f || playerCamera == null) return;
 
-            // Ray from center of screen
             Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
 
-            // SphereCast is more forgiving for small items like batteries
             if (Physics.SphereCast(ray, 0.15f, out RaycastHit hit, interactRange, interactMask, QueryTriggerInteraction.Collide))
             {
                 var interactable = hit.collider.GetComponentInParent<IInteractable>();

@@ -11,15 +11,11 @@ namespace Sokophobia.Grid
         Other
     }
 
-    /// <summary>
-    /// Emitted whenever something produces a detectable sound.
-    /// Person 2's Sokobot subscribes to this to drive its AI.
-    /// </summary>
     public struct NoiseEvent
     {
         public Vector3 Position;
-        public float Radius;      // how far the sound carries
-        public float Intensity;   // 0..1, loudness multiplier
+        public float Radius;
+        public float Intensity;
         public NoiseSource Source;
 
         public NoiseEvent(Vector3 position, float radius, float intensity, NoiseSource source)

@@ -6,12 +6,6 @@ using Sokophobia.Grid;
 
 namespace Sokophobia.UI
 {
-    /// <summary>
-    /// Enemy-AI HUD (game-ai verify-by-observation, in-game edition): alert
-    /// glyph + suspicion bar, off-screen chase arrow, flashlight charge bar,
-    /// plate progress, and a damage flash. Builds its own Canvas at runtime,
-    /// so it only needs this component on any GameObject in the scene.
-    /// </summary>
     public class EnemyAIHUD : MonoBehaviour
     {
         [Header("Tuning")]
@@ -47,8 +41,6 @@ namespace Sokophobia.UI
 
         private void Start()
         {
-            // The enemy starts inactive and is spawned by EnemySpawner on the
-            // first plate press, so cache it even while the object is disabled.
             _bot = FindAnyObjectByType<SokobotController>(FindObjectsInactive.Include);
             _stunner = FindAnyObjectByType<FlashlightStunner>();
             _puzzle = FindAnyObjectByType<PuzzleManager>();
@@ -58,7 +50,6 @@ namespace Sokophobia.UI
             _suspShown = _bot != null ? _bot.DebugSuspicion : 0f;
         }
 
-        // Threshold ticks (? becomes !): positioned once from the bot's tuning.
         private void BuildSuspTicks()
         {
             if (_bot == null) return;
@@ -91,7 +82,6 @@ namespace Sokophobia.UI
 
         private void SubscribeToPuzzle()
         {
-            // On the first enable, Start has not found the puzzle yet.
             if (_puzzle == null) return;
 
             _puzzle.OnProgressChanged += HandleProgress;
@@ -112,7 +102,6 @@ namespace Sokophobia.UI
         private void HandleDamaged() => _flashAlpha = flashPeak;
         private void HandleProgress(int placed, int total)
         {
-            // Keep the escape instruction once solved, just like the open door.
             if (_puzzle != null && _puzzle.IsSolved)
             {
                 HandlePuzzleSolved();
@@ -131,7 +120,6 @@ namespace Sokophobia.UI
 
         private void Update()
         {
-            // Damage flash decay.
             if (_flashAlpha > 0f)
             {
                 _flashAlpha = Mathf.Max(0f, _flashAlpha - flashFade * Time.deltaTime);
@@ -143,7 +131,6 @@ namespace Sokophobia.UI
             var state = _bot.DebugState;
             float susp = _bot.DebugSuspicion;
 
-            // Alert glyph + suspicion bar.
             bool showAlert = state == SokobotController.StateId.Chase
                 || state == SokobotController.StateId.Investigate
                 || state == SokobotController.StateId.Stunned
@@ -166,14 +153,12 @@ namespace Sokophobia.UI
                     _alertText.text = "?";
                     _alertText.color = Color.yellow;
                 }
-                // Smooth the stepped 0.1s sense updates + ramp yellow->red.
                 float k = 1f - Mathf.Exp(-10f * Time.deltaTime);
                 _suspShown = Mathf.Lerp(_suspShown, Mathf.Clamp01(susp), k);
                 _suspFill.sizeDelta = new Vector2(300f * _suspShown, _suspFill.sizeDelta.y);
                 if (_suspFillImg != null)
                 {
                     _suspFillImg.color = Color.Lerp(Color.yellow, Color.red, _suspShown);
-                    // Blink at max: the ? is about to become !.
                     if (_suspShown >= _bot.ChaseThreshold - 0.001f
                         && state != SokobotController.StateId.Chase)
                         _suspFillImg.color = Color.Lerp(Color.red, Color.white,
@@ -181,8 +166,6 @@ namespace Sokophobia.UI
                 }
             }
 
-            // High-beam charge bar. While discharging, the bar refills to show
-            // when the next high beam is ready.
             float charge = _stunner != null ? _stunner.Charge01 : 0f;
             float cooldown = _stunner != null ? _stunner.Cooldown01 : 0f;
             bool charging = charge > 0.01f;
@@ -227,7 +210,6 @@ namespace Sokophobia.UI
 
             SetArrowVisible(true);
             dir.Normalize();
-            // Clamp to an inset rect.
             float tx = (Screen.width * 0.5f - edgeMargin) / Mathf.Max(1f, Mathf.Abs(dir.x));
             float ty = (Screen.height * 0.5f - edgeMargin) / Mathf.Max(1f, Mathf.Abs(dir.y));
             Vector2 pos = center + dir * Mathf.Min(tx, ty);
@@ -244,7 +226,6 @@ namespace Sokophobia.UI
 
         private void SetArrowVisible(bool v) => _arrow.gameObject.SetActive(v);
 
-        // ---------- Runtime UI construction ----------
         private static Font Arial() =>
             Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
@@ -258,32 +239,26 @@ namespace Sokophobia.UI
             var scaler = cv.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
 
-            // Damage flash (bottom of draw order).
             _flash = FullScreenImage(new Color(0.7f, 0f, 0f, 0f));
 
-            // Alert glyph, top-center (clear of the bar below it).
             _alertText = MakeText("Alert", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
                 new Vector2(0f, -28f), 44, TextAnchor.MiddleCenter);
             _alertText.gameObject.SetActive(false);
 
-            // Suspicion bar under the glyph.
             _suspBar = Bar(new Vector2(0.5f, 1f), new Vector2(0f, -104f), 300f, 14f,
                 new Color(0f, 0f, 0f, 0.6f), Color.yellow, out _suspFill);
             _suspFillImg = _suspFill.GetComponent<Image>();
             _suspBar.SetActive(false);
 
-            // Plates progress, top-left.
             _platesText = MakeText("Plates", Vector2.up, Vector2.up,
                 new Vector2(130f, -34f), 22, TextAnchor.MiddleLeft);
             _platesText.text = "PLATES  --";
 
-            // Flashlight charge, bottom-center.
             _chargeBar = Bar(new Vector2(0.5f, 0f), new Vector2(0f, 44f), 220f, 10f,
                 new Color(0f, 0f, 0f, 0.6f), Color.cyan, out _chargeFill);
             _chargeFillImg = _chargeFill.GetComponent<Image>();
             _chargeBar.SetActive(false);
 
-            // Chase arrow (hidden until needed).
             var arrowGo = new GameObject("ChaseArrow");
             arrowGo.transform.SetParent(_canvas.transform, false);
             _arrow = arrowGo.AddComponent<RectTransform>();
@@ -348,7 +323,6 @@ namespace Sokophobia.UI
             var fillGo = new GameObject("Fill");
             fillGo.transform.SetParent(go.transform, false);
             fillRt = fillGo.AddComponent<RectTransform>();
-            // Anchor to the bar's LEFT edge so the fill grows rightward inside it.
             fillRt.anchorMin = new Vector2(0f, 0.5f);
             fillRt.anchorMax = new Vector2(0f, 0.5f);
             fillRt.pivot = new Vector2(0f, 0.5f);
@@ -369,7 +343,7 @@ namespace Sokophobia.UI
             for (int i = 0; i < pix.Length; i++) pix[i] = clear;
             for (int y = 0; y < s; y++)
             {
-                float row = 1f - (float)y / s; // wide at bottom, apex at top
+                float row = 1f - (float)y / s;
                 int half = Mathf.RoundToInt(row * (s * 0.45f));
                 for (int x = s / 2 - half; x <= s / 2 + half; x++)
                     pix[y * s + x] = Color.white;

@@ -18,7 +18,7 @@ namespace Sokophobia.UI
         private FlashlightBattery _battery;
 
         private readonly Color _normalColor = new Color(1f, 1f, 1f, 0.7f);
-        private readonly Color _targetColor = new Color(1f, 0.8f, 0f, 1f); // Yellow for interactable
+        private readonly Color _targetColor = new Color(1f, 0.8f, 0f, 1f);
 
         private void Awake()
         {
@@ -37,7 +37,6 @@ namespace Sokophobia.UI
             _canvasObject.SetActive(gameplayActive);
             if (!gameplayActive) return;
 
-            // 1. Crosshair & Interaction Logic
             if (_interactor != null)
             {
                 Color c = _interactor.HasTarget ? _targetColor : _normalColor;
@@ -48,7 +47,6 @@ namespace Sokophobia.UI
                 _promptText.text = _interactor.HasTarget ? $"[E] {_interactor.CurrentPrompt}" : "";
             }
 
-            // 2. Battery Logic
             if (_battery != null && _batteryText != null)
             {
                 int percent = Mathf.RoundToInt(_battery.Charge01 * 100f);
@@ -59,18 +57,16 @@ namespace Sokophobia.UI
 
         private void BuildCanvas()
         {
-            // Create Canvas
             _canvasObject = new GameObject("CrosshairCanvas", typeof(Canvas), typeof(CanvasScaler));
             _canvasObject.transform.SetParent(transform, false);
             
             Canvas canvas = _canvasObject.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 90; // Below EnemyAIHUD (100), above PauseMenu (0)
+            canvas.sortingOrder = 90;
 
             CanvasScaler scaler = _canvasObject.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
 
-            // Create Crosshair Pieces
             _centerDot = CreateImage("Dot", new Vector2(4f, 4f), _canvasObject.transform, _normalColor);
             
             _ticks = new Image[4];
@@ -79,7 +75,6 @@ namespace Sokophobia.UI
             _ticks[2] = CreateImage("TickLeft", new Vector2(8f, 2f), _canvasObject.transform, _normalColor, new Vector2(-10f, 0f));
             _ticks[3] = CreateImage("TickRight", new Vector2(8f, 2f), _canvasObject.transform, _normalColor, new Vector2(10f, 0f));
 
-            // Create Prompt Text (Below crosshair)
             GameObject textObj = new GameObject("PromptText", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
             textObj.transform.SetParent(_canvasObject.transform, false);
             RectTransform rt = textObj.GetComponent<RectTransform>();
@@ -94,16 +89,14 @@ namespace Sokophobia.UI
             _promptText.color = Color.white;
             _promptText.fontSize = 18;
 
-            // Create Battery Text (Bottom Right)
             GameObject batObj = new GameObject("BatteryText", typeof(RectTransform), typeof(CanvasRenderer), typeof(Text));
             batObj.transform.SetParent(_canvasObject.transform, false);
             RectTransform brt = batObj.GetComponent<RectTransform>();
 
-            // Anchor to Bottom Right
             brt.anchorMin = new Vector2(1f, 0f);
             brt.anchorMax = new Vector2(1f, 0f);
             brt.pivot = new Vector2(1f, 0f);
-            brt.anchoredPosition = new Vector2(-30f, 30f); // 30px from bottom-right
+            brt.anchoredPosition = new Vector2(-30f, 30f);
             brt.sizeDelta = new Vector2(200f, 40f);
 
             _batteryText = batObj.GetComponent<Text>();
@@ -112,7 +105,7 @@ namespace Sokophobia.UI
             _batteryText.color = Color.white;
             _batteryText.fontSize = 20;
             _batteryText.fontStyle = FontStyle.Bold;
-            _batteryText.text = "BATTERY: --"; // Default text for debugging
+            _batteryText.text = "BATTERY: --";
         }
 
         private Image CreateImage(string name, Vector2 size, Transform parent, Color color, Vector2 offset = default)
