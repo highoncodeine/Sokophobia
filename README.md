@@ -39,5 +39,5 @@ Movement is grid-based, relative to the nearest cardinal direction you are facin
 ### Testing Shortcuts
 
 | Input | Action |
-| --- | --- ||
+| --- | --- |
 | F8 | Mark the plate puzzle complete for testing. |
